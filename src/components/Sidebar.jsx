@@ -56,12 +56,12 @@ const Sidebar = () => {
 			} );
 
 			if ( response.success ) {
+				if ( response.title ) {
+					editPost( { title: response.title } );
+				}
 				if ( response.content ) {
 					const blocks = parse( response.content );
 					resetBlocks( blocks );
-				}
-				if ( response.title ) {
-					editPost( { title: response.title } );
 				}
 				if ( response.changes ) {
 					setChanges( response.changes );
