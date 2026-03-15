@@ -47,3 +47,7 @@ To stop:
 ```bash
 docker compose down
 ```
+
+# Lisence
+
+GPL-2.0-or-later
