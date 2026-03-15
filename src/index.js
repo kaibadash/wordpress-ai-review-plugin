@@ -3,7 +3,7 @@ import { PluginSidebar } from '@wordpress/edit-post';
 import { __ } from '@wordpress/i18n';
 import Sidebar from './components/Sidebar';
 
-registerPlugin( 'ai-review-plugin', {
+registerPlugin( 'ai-review', {
 	render: () => (
 		<PluginSidebar
 			name="ai-review-sidebar"

@@ -5,11 +5,12 @@ cd "$(dirname "$0")"
 
 npm run build
 
-zip -r ai-review-plugin.zip \
-  ai-review-plugin.php \
+zip -r ai-review.zip \
+  ai-review.php \
   inc/ \
   build/ \
+  assets/ \
   languages/ \
   readme.txt
 
-echo "Created: ai-review-plugin.zip"
+echo "Created: ai-review.zip"

@@ -11,7 +11,7 @@ services:
       WORDPRESS_DEBUG: "1"
     volumes:
       - wordpress_data:/var/www/html
-      - .:/var/www/html/wp-content/plugins/ai-review-plugin
+      - .:/var/www/html/wp-content/plugins/ai-review
     depends_on:
       - db
 
