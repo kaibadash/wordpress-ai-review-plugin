@@ -1,6 +1,6 @@
 <?php
 /**
- * AI Review REST API エンドポイント
+ * AI Review REST API Endpoint.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -12,14 +12,14 @@ class AI_Review_REST_API {
 	const NAMESPACE = 'ai-review/v1';
 
 	/**
-	 * 初期化
+	 * Initialize hooks.
 	 */
 	public function init() {
 		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
 	}
 
 	/**
-	 * ルート登録
+	 * Register routes.
 	 */
 	public function register_routes() {
 		register_rest_route(
@@ -37,7 +37,8 @@ class AI_Review_REST_API {
 					),
 					'prompt'       => array(
 						'type'              => 'string',
-						'required'          => true,
+						'required'          => false,
+						'default'           => '',
 						'sanitize_callback' => 'sanitize_textarea_field',
 					),
 				),
@@ -56,34 +57,26 @@ class AI_Review_REST_API {
 	}
 
 	/**
-	 * 投稿編集権限チェック
+	 * Check edit permission.
 	 */
 	public function check_edit_permission() {
 		return current_user_can( 'edit_posts' );
 	}
 
 	/**
-	 * AI修正リクエストの処理
+	 * Handle AI review request.
 	 */
 	public function handle_review_request( WP_REST_Request $request ) {
 		if ( ! AI_Review_Settings::is_configured() ) {
 			return new WP_Error(
 				'settings_not_configured',
-				'LLMの設定が完了していません。設定画面から設定を行ってください。',
+				__( 'LLM settings are not configured. Please configure them in the settings page.', 'ai-review' ),
 				array( 'status' => 400 )
 			);
 		}
 
 		$post_content = $request->get_param( 'post_content' );
 		$prompt       = $request->get_param( 'prompt' );
-
-		if ( empty( $prompt ) ) {
-			return new WP_Error(
-				'missing_parameter',
-				'プロンプトを入力してください。',
-				array( 'status' => 400 )
-			);
-		}
 
 		$provider      = get_option( 'ai_review_provider', '' );
 		$model         = get_option( 'ai_review_model', '' );
@@ -94,7 +87,20 @@ class AI_Review_REST_API {
 			$system_prompt = AI_Review_Settings::DEFAULT_SYSTEM_PROMPT;
 		}
 
-		$user_message = "以下の記事を修正してください。\n\n【記事内容】\n" . $post_content . "\n\n【修正指示】\n" . $prompt;
+		if ( ! empty( $prompt ) ) {
+			/* translators: %1$s: post content, %2$s: user prompt */
+			$user_message = sprintf(
+				__( "Please revise the following article.\n\n[Article]\n%1\$s\n\n[Instructions]\n%2\$s", 'ai-review' ),
+				$post_content,
+				$prompt
+			);
+		} else {
+			/* translators: %s: post content */
+			$user_message = sprintf(
+				__( "Please revise the following article.\n\n[Article]\n%s", 'ai-review' ),
+				$post_content
+			);
+		}
 
 		$api_url = rtrim( $provider, '/' ) . '/chat/completions';
 
@@ -127,7 +133,7 @@ class AI_Review_REST_API {
 		if ( is_wp_error( $response ) ) {
 			return new WP_Error(
 				'llm_api_error',
-				'AIサービスとの通信に失敗しました。しばらく経ってから再度お試しください。',
+				__( 'Failed to communicate with the AI service. Please try again later.', 'ai-review' ),
 				array( 'status' => 502 )
 			);
 		}
@@ -136,7 +142,8 @@ class AI_Review_REST_API {
 		if ( $status_code !== 200 ) {
 			return new WP_Error(
 				'llm_api_error',
-				'AIサービスからエラーが返されました（ステータス: ' . $status_code . '）。設定を確認してください。',
+				/* translators: %d: HTTP status code */
+				sprintf( __( 'The AI service returned an error (status: %d). Please check your settings.', 'ai-review' ), $status_code ),
 				array( 'status' => 502 )
 			);
 		}
@@ -146,7 +153,7 @@ class AI_Review_REST_API {
 		if ( empty( $body['choices'][0]['message']['content'] ) ) {
 			return new WP_Error(
 				'llm_api_error',
-				'AIサービスから有効な応答が得られませんでした。',
+				__( 'No valid response was received from the AI service.', 'ai-review' ),
 				array( 'status' => 502 )
 			);
 		}
@@ -162,7 +169,7 @@ class AI_Review_REST_API {
 	}
 
 	/**
-	 * 設定状態の取得
+	 * Get settings status.
 	 */
 	public function handle_settings_status( WP_REST_Request $request ) {
 		return rest_ensure_response(

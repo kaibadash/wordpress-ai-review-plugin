@@ -12,10 +12,10 @@ const ExecuteButton = ( { onClick, disabled, isLoading } ) => {
 			{ isLoading ? (
 				<>
 					<Spinner />
-					{ __( '処理中...', 'ai-review' ) }
+					{ __( 'Processing...', 'ai-review' ) }
 				</>
 			) : (
-				__( '実行', 'ai-review' )
+				__( 'Execute', 'ai-review' )
 			) }
 		</Button>
 	);

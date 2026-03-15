@@ -54,7 +54,7 @@ const Sidebar = () => {
 		} catch ( err ) {
 			setError(
 				err.message ||
-					__( 'エラーが発生しました。', 'ai-review' )
+					__( 'An error occurred.', 'ai-review' )
 			);
 		} finally {
 			setIsLoading( false );
@@ -64,7 +64,7 @@ const Sidebar = () => {
 	if ( isConfigured === null ) {
 		return (
 			<PanelBody>
-				<p>{ __( '読み込み中...', 'ai-review' ) }</p>
+				<p>{ __( 'Loading...', 'ai-review' ) }</p>
 			</PanelBody>
 		);
 	}
@@ -74,7 +74,7 @@ const Sidebar = () => {
 			<PanelBody>
 				<Notice status="warning" isDismissible={ false }>
 					{ __(
-						'設定画面からLLMの設定を完了してください。管理画面の「設定」→「AI Review」から設定できます。',
+						'Please complete the LLM settings. Go to Settings → AI Review.',
 						'ai-review'
 					) }
 				</Notice>
@@ -107,7 +107,7 @@ const Sidebar = () => {
 			<div style={ { marginTop: '12px' } }>
 				<ExecuteButton
 					onClick={ handleExecute }
-					disabled={ ! prompt.trim() || isLoading }
+					disabled={ isLoading }
 					isLoading={ isLoading }
 				/>
 			</div>

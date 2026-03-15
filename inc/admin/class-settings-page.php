@@ -1,6 +1,6 @@
 <?php
 /**
- * AI Review プラグイン設定ページ
+ * AI Review Settings Page.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -11,10 +11,10 @@ class AI_Review_Settings {
 
 	const OPTION_GROUP   = 'ai_review_settings';
 	const SETTINGS_PAGE  = 'ai-review-settings';
-	const DEFAULT_SYSTEM_PROMPT = 'あなたは優秀な編集者です。指示に従って記事を修正してください。修正後の記事本文のみを返してください。';
+	const DEFAULT_SYSTEM_PROMPT = 'You are an excellent editor. Please correct typos and unnatural expressions. Return only the article body. Do not modify or remove any WordPress block markup, HTML tags, or shortcodes.';
 
 	/**
-	 * 初期化
+	 * Initialize hooks.
 	 */
 	public function init() {
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
@@ -22,7 +22,7 @@ class AI_Review_Settings {
 	}
 
 	/**
-	 * 設定の登録
+	 * Register settings.
 	 */
 	public function register_settings() {
 		register_setting(
@@ -71,14 +71,14 @@ class AI_Review_Settings {
 
 		add_settings_section(
 			'ai_review_main_section',
-			'LLM設定',
+			__( 'LLM Settings', 'ai-review' ),
 			null,
 			self::SETTINGS_PAGE
 		);
 
 		add_settings_field(
 			'ai_review_provider',
-			'LLMプロバイダ (API Base URL)',
+			__( 'LLM Provider (API Base URL)', 'ai-review' ),
 			array( $this, 'render_provider_field' ),
 			self::SETTINGS_PAGE,
 			'ai_review_main_section'
@@ -86,7 +86,7 @@ class AI_Review_Settings {
 
 		add_settings_field(
 			'ai_review_model',
-			'モデル名',
+			__( 'Model Name', 'ai-review' ),
 			array( $this, 'render_model_field' ),
 			self::SETTINGS_PAGE,
 			'ai_review_main_section'
@@ -94,7 +94,7 @@ class AI_Review_Settings {
 
 		add_settings_field(
 			'ai_review_api_key',
-			'APIキー',
+			__( 'API Key', 'ai-review' ),
 			array( $this, 'render_api_key_field' ),
 			self::SETTINGS_PAGE,
 			'ai_review_main_section'
@@ -102,7 +102,7 @@ class AI_Review_Settings {
 
 		add_settings_field(
 			'ai_review_system_prompt',
-			'システムプロンプト',
+			__( 'System Prompt', 'ai-review' ),
 			array( $this, 'render_system_prompt_field' ),
 			self::SETTINGS_PAGE,
 			'ai_review_main_section'
@@ -110,11 +110,11 @@ class AI_Review_Settings {
 	}
 
 	/**
-	 * 設定ページをメニューに追加
+	 * Add settings page to menu.
 	 */
 	public function add_settings_page() {
 		add_options_page(
-			'AI Review 設定',
+			__( 'AI Review Settings', 'ai-review' ),
 			'AI Review',
 			'manage_options',
 			self::SETTINGS_PAGE,
@@ -123,7 +123,7 @@ class AI_Review_Settings {
 	}
 
 	/**
-	 * 設定ページのHTML描画
+	 * Render settings page HTML.
 	 */
 	public function render_settings_page() {
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -131,12 +131,12 @@ class AI_Review_Settings {
 		}
 		?>
 		<div class="wrap">
-			<h1>AI Review 設定</h1>
+			<h1><?php echo esc_html( __( 'AI Review Settings', 'ai-review' ) ); ?></h1>
 			<form method="post" action="options.php">
 				<?php
 				settings_fields( self::OPTION_GROUP );
 				do_settings_sections( self::SETTINGS_PAGE );
-				submit_button( '変更を保存' );
+				submit_button( __( 'Save Changes', 'ai-review' ) );
 				?>
 			</form>
 		</div>
@@ -144,51 +144,51 @@ class AI_Review_Settings {
 	}
 
 	/**
-	 * プロバイダフィールドの描画
+	 * Render provider field.
 	 */
 	public function render_provider_field() {
 		$value = get_option( 'ai_review_provider', '' );
 		?>
 		<input type="text" name="ai_review_provider" value="<?php echo esc_attr( $value ); ?>" class="regular-text" placeholder="https://api.openai.com/v1" required />
-		<p class="description">LLMプロバイダのAPI Base URLを入力してください（例: https://api.openai.com/v1）</p>
+		<p class="description"><?php echo esc_html( __( 'Enter the API Base URL of your LLM provider (e.g. https://api.openai.com/v1)', 'ai-review' ) ); ?></p>
 		<?php
 	}
 
 	/**
-	 * モデルフィールドの描画
+	 * Render model field.
 	 */
 	public function render_model_field() {
 		$value = get_option( 'ai_review_model', '' );
 		?>
 		<input type="text" name="ai_review_model" value="<?php echo esc_attr( $value ); ?>" class="regular-text" placeholder="gpt-4o-mini" required />
-		<p class="description">使用するモデル名を入力してください（例: gpt-4o-mini）</p>
+		<p class="description"><?php echo esc_html( __( 'Enter the model name to use (e.g. gpt-4o-mini)', 'ai-review' ) ); ?></p>
 		<?php
 	}
 
 	/**
-	 * APIキーフィールドの描画
+	 * Render API key field.
 	 */
 	public function render_api_key_field() {
 		$value = get_option( 'ai_review_api_key', '' );
 		?>
 		<input type="password" name="ai_review_api_key" value="<?php echo esc_attr( $value ); ?>" class="regular-text" required />
-		<p class="description">LLMプロバイダのAPIキーを入力してください</p>
+		<p class="description"><?php echo esc_html( __( 'Enter the API key for your LLM provider', 'ai-review' ) ); ?></p>
 		<?php
 	}
 
 	/**
-	 * システムプロンプトフィールドの描画
+	 * Render system prompt field.
 	 */
 	public function render_system_prompt_field() {
 		$value = get_option( 'ai_review_system_prompt', self::DEFAULT_SYSTEM_PROMPT );
 		?>
 		<textarea name="ai_review_system_prompt" rows="5" class="large-text"><?php echo esc_textarea( $value ); ?></textarea>
-		<p class="description">AIに送信するシステムプロンプトを入力してください</p>
+		<p class="description"><?php echo esc_html( __( 'Enter the system prompt to send to the AI', 'ai-review' ) ); ?></p>
 		<?php
 	}
 
 	/**
-	 * 設定が完了しているかチェック
+	 * Check if settings are configured.
 	 */
 	public static function is_configured() {
 		$provider = get_option( 'ai_review_provider', '' );

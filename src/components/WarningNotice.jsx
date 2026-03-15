@@ -4,7 +4,7 @@ import { __ } from '@wordpress/i18n';
 const WarningNotice = () => {
 	return (
 		<Notice status="warning" isDismissible={ false }>
-			{ __( '⚠ AIによる修正は現在の記事内容を上書きします。', 'ai-review' ) }
+			{ __( 'AI revisions will overwrite the current post content.', 'ai-review' ) }
 		</Notice>
 	);
 };

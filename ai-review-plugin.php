@@ -2,7 +2,7 @@
 /**
  * Plugin Name: AI Review
  * Plugin URI: https://github.com/kaibadash/wordpress-ai-review-plugin
- * Description: AIを使って記事を修正するプラグイン。投稿編集画面のサイドバーからプロンプトを入力し、AIによる記事修正を実行できます。
+ * Description: A plugin that uses AI to revise your posts. Enter a prompt in the post editor sidebar to refine your content.
  * Version: 1.0.0
  * Author: kaibadash
  * License: GPL-2.0-or-later
@@ -36,7 +36,15 @@ function ai_review_init() {
 add_action( 'plugins_loaded', 'ai_review_init' );
 
 /**
- * エディタスクリプトの登録
+ * Load text domain for translations.
+ */
+function ai_review_load_textdomain() {
+	load_plugin_textdomain( 'ai-review', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+}
+add_action( 'init', 'ai_review_load_textdomain' );
+
+/**
+ * Enqueue editor scripts.
  */
 function ai_review_enqueue_editor_assets() {
 	if ( ! current_user_can( 'edit_posts' ) ) {
@@ -66,6 +74,8 @@ function ai_review_enqueue_editor_assets() {
 			'rest_url' => rest_url( 'ai-review/v1/' ),
 		)
 	);
+
+	wp_set_script_translations( 'ai-review-editor', 'ai-review', AI_REVIEW_PLUGIN_DIR . 'languages' );
 
 	if ( file_exists( AI_REVIEW_PLUGIN_DIR . 'build/index.css' ) ) {
 		wp_enqueue_style(
