@@ -81,18 +81,28 @@
 			error: function( xhr ) {
 				var parts = [];
 				var json = xhr.responseJSON;
-				parts.push( ( json && json.message ) || aiReviewClassic.i18n.error );
-				if ( json && json.code ) {
-					parts.push( '[' + json.code + ']' );
-				}
-				if ( json && json.data && json.data.detail ) {
-					parts.push( json.data.detail );
-				}
-				if ( json && json.data && json.data.url ) {
-					parts.push( 'URL: ' + json.data.url );
-				}
-				if ( json && json.data && json.data.model ) {
-					parts.push( 'Model: ' + json.data.model );
+				if ( json && json.message ) {
+					parts.push( json.message );
+					if ( json.code ) {
+						parts.push( '[' + json.code + ']' );
+					}
+					if ( json.data && json.data.detail ) {
+						parts.push( json.data.detail );
+					}
+					if ( json.data && json.data.url ) {
+						parts.push( 'URL: ' + json.data.url );
+					}
+					if ( json.data && json.data.model ) {
+						parts.push( 'Model: ' + json.data.model );
+					}
+				} else {
+					// Non-JSON response (PHP crash, timeout, etc.)
+					parts.push( aiReviewClassic.i18n.error );
+					parts.push( 'HTTP ' + xhr.status + ' ' + xhr.statusText );
+					var body = ( xhr.responseText || '' ).substring( 0, 500 );
+					if ( body ) {
+						parts.push( body.replace( /<[^>]*>/g, '' ).trim() );
+					}
 				}
 				$error.find( 'p' ).css( { 'white-space': 'pre-wrap', 'word-break': 'break-all', 'font-size': '12px' } ).text( parts.join( '\n' ) );
 				$error.show();

@@ -112,6 +112,11 @@ class AI_Review_REST_API {
 
 		$api_url = rtrim( $provider, '/' ) . '/chat/completions';
 
+		// Extend PHP execution time limit for LLM API calls.
+		if ( function_exists( 'set_time_limit' ) ) {
+			set_time_limit( 300 );
+		}
+
 		$request_body = array(
 			'model'           => $model,
 			'messages'        => array(

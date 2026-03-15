@@ -47,6 +47,9 @@ wp-config.php
 # uncomment the next line
 #/wp-content/themes
 
+# Build output
+build/
+
 # Node.js
 node_modules/
 
