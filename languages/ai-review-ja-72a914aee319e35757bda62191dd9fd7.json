@@ -19,6 +19,7 @@
       "AI revisions will overwrite the current post content.": [ "⚠ AIによる修正は現在の記事内容を上書きします。" ],
       "Instructions (optional)": [ "修正指示（任意）" ],
       "Optionally enter instructions for the AI. If left empty, the system prompt will be used as-is.": [ "AIへの修正指示を入力してください（空欄の場合はシステムプロンプトのみで実行されます）" ],
+      "Changes": [ "変更内容" ],
       "e.g. Make the tone more casual": [ "例: もっとカジュアルな文体にして" ]
     }
   }

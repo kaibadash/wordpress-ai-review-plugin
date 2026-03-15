@@ -7,18 +7,25 @@ import apiFetch from '@wordpress/api-fetch';
 import WarningNotice from './WarningNotice';
 import PromptInput from './PromptInput';
 import ExecuteButton from './ExecuteButton';
+import ChangesNotice from './ChangesNotice';
 
 const Sidebar = () => {
 	const [ prompt, setPrompt ] = useState( '' );
 	const [ isLoading, setIsLoading ] = useState( false );
 	const [ error, setError ] = useState( '' );
 	const [ isConfigured, setIsConfigured ] = useState( null );
+	const [ changes, setChanges ] = useState( '' );
+
+	const postTitle = useSelect( ( select ) => {
+		return select( 'core/editor' ).getEditedPostAttribute( 'title' );
+	}, [] );
 
 	const postContent = useSelect( ( select ) => {
 		return select( 'core/editor' ).getEditedPostContent();
 	}, [] );
 
 	const { resetBlocks } = useDispatch( 'core/block-editor' );
+	const { editPost } = useDispatch( 'core/editor' );
 
 	useEffect( () => {
 		apiFetch( {
@@ -35,20 +42,30 @@ const Sidebar = () => {
 	const handleExecute = async () => {
 		setIsLoading( true );
 		setError( '' );
+		setChanges( '' );
 
 		try {
 			const response = await apiFetch( {
 				path: 'ai-review/v1/review',
 				method: 'POST',
 				data: {
+					post_title: postTitle,
 					post_content: postContent,
 					prompt,
 				},
 			} );
 
-			if ( response.success && response.content ) {
-				const blocks = parse( response.content );
-				resetBlocks( blocks );
+			if ( response.success ) {
+				if ( response.content ) {
+					const blocks = parse( response.content );
+					resetBlocks( blocks );
+				}
+				if ( response.title ) {
+					editPost( { title: response.title } );
+				}
+				if ( response.changes ) {
+					setChanges( response.changes );
+				}
 				setPrompt( '' );
 			}
 		} catch ( err ) {
@@ -111,6 +128,15 @@ const Sidebar = () => {
 					isLoading={ isLoading }
 				/>
 			</div>
+
+			{ changes && (
+				<div style={ { marginTop: '12px' } }>
+					<ChangesNotice
+						changes={ changes }
+						onDismiss={ () => setChanges( '' ) }
+					/>
+				</div>
+			) }
 		</PanelBody>
 	);
 };

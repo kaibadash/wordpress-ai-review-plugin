@@ -59,9 +59,6 @@ msgstr "LLMプロバイダのAPIキーを入力してください"
 msgid "Enter the system prompt to send to the AI"
 msgstr "AIに送信するシステムプロンプトを入力してください"
 
-#. Default system prompt — not shown in UI, used as option default
-
-
 #: inc/rest/class-api-endpoint.php
 msgid "LLM settings are not configured. Please configure them in the settings page."
 msgstr "LLMの設定が完了していません。設定画面から設定を行ってください。"
@@ -70,31 +67,43 @@ msgstr "LLMの設定が完了していません。設定画面から設定を行
 msgid ""
 "Please revise the following article.\n"
 "\n"
-"[Article]\n"
+"[Title]\n"
 "%1$s\n"
 "\n"
+"[Article]\n"
+"%2$s\n"
+"\n"
 "[Instructions]\n"
-"%2$s"
+"%3$s"
 msgstr ""
 "以下の記事を修正してください。\n"
 "\n"
-"【記事内容】\n"
+"【タイトル】\n"
 "%1$s\n"
 "\n"
+"【記事内容】\n"
+"%2$s\n"
+"\n"
 "【修正指示】\n"
-"%2$s"
+"%3$s"
 
 #: inc/rest/class-api-endpoint.php
 msgid ""
 "Please revise the following article.\n"
 "\n"
+"[Title]\n"
+"%1$s\n"
+"\n"
 "[Article]\n"
-"%s"
+"%2$s"
 msgstr ""
 "以下の記事を修正してください。\n"
 "\n"
+"【タイトル】\n"
+"%1$s\n"
+"\n"
 "【記事内容】\n"
-"%s"
+"%2$s"
 
 #: inc/rest/class-api-endpoint.php
 msgid "Failed to communicate with the AI service. Please try again later."
@@ -107,6 +116,10 @@ msgstr "AIサービスからエラーが返されました（ステータス: %d
 #: inc/rest/class-api-endpoint.php
 msgid "No valid response was received from the AI service."
 msgstr "AIサービスから有効な応答が得られませんでした。"
+
+#: inc/rest/class-api-endpoint.php
+msgid "The AI service returned an unexpected response format."
+msgstr "AIサービスから予期しないレスポンス形式が返されました。"
 
 #: src/components/Sidebar.jsx
 msgid "An error occurred."
@@ -131,6 +144,10 @@ msgstr "実行"
 #: src/components/WarningNotice.jsx
 msgid "AI revisions will overwrite the current post content."
 msgstr "⚠ AIによる修正は現在の記事内容を上書きします。"
+
+#: src/components/ChangesNotice.jsx
+msgid "Changes"
+msgstr "変更内容"
 
 #: src/components/PromptInput.jsx
 msgid "Instructions (optional)"

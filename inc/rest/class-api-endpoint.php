@@ -30,6 +30,11 @@ class AI_Review_REST_API {
 				'callback'            => array( $this, 'handle_review_request' ),
 				'permission_callback' => array( $this, 'check_edit_permission' ),
 				'args'                => array(
+					'post_title'   => array(
+						'type'              => 'string',
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
 					'post_content' => array(
 						'type'              => 'string',
 						'required'          => true,
@@ -75,6 +80,7 @@ class AI_Review_REST_API {
 			);
 		}
 
+		$post_title   = $request->get_param( 'post_title' );
 		$post_content = $request->get_param( 'post_content' );
 		$prompt       = $request->get_param( 'prompt' );
 
@@ -88,21 +94,63 @@ class AI_Review_REST_API {
 		}
 
 		if ( ! empty( $prompt ) ) {
-			/* translators: %1$s: post content, %2$s: user prompt */
+			/* translators: %1$s: post title, %2$s: post content, %3$s: user prompt */
 			$user_message = sprintf(
-				__( "Please revise the following article.\n\n[Article]\n%1\$s\n\n[Instructions]\n%2\$s", 'ai-review' ),
+				__( "Please revise the following article.\n\n[Title]\n%1\$s\n\n[Article]\n%2\$s\n\n[Instructions]\n%3\$s", 'ai-review' ),
+				$post_title,
 				$post_content,
 				$prompt
 			);
 		} else {
-			/* translators: %s: post content */
+			/* translators: %1$s: post title, %2$s: post content */
 			$user_message = sprintf(
-				__( "Please revise the following article.\n\n[Article]\n%s", 'ai-review' ),
+				__( "Please revise the following article.\n\n[Title]\n%1\$s\n\n[Article]\n%2\$s", 'ai-review' ),
+				$post_title,
 				$post_content
 			);
 		}
 
 		$api_url = rtrim( $provider, '/' ) . '/chat/completions';
+
+		$request_body = array(
+			'model'           => $model,
+			'messages'        => array(
+				array(
+					'role'    => 'system',
+					'content' => $system_prompt,
+				),
+				array(
+					'role'    => 'user',
+					'content' => $user_message,
+				),
+			),
+			'response_format' => array(
+				'type'        => 'json_schema',
+				'json_schema' => array(
+					'name'   => 'article_review',
+					'strict' => true,
+					'schema' => array(
+						'type'                 => 'object',
+						'properties'           => array(
+							'title'   => array(
+								'type'        => 'string',
+								'description' => 'The revised article title.',
+							),
+							'body'    => array(
+								'type'        => 'string',
+								'description' => 'The revised article body. Must preserve all WordPress block markup, HTML tags, and shortcodes.',
+							),
+							'changes' => array(
+								'type'        => 'string',
+								'description' => 'A summary of the changes made to the article.',
+							),
+						),
+						'required'             => array( 'title', 'body', 'changes' ),
+						'additionalProperties' => false,
+					),
+				),
+			),
+		);
 
 		$response = wp_remote_post(
 			$api_url,
@@ -111,21 +159,7 @@ class AI_Review_REST_API {
 					'Authorization' => 'Bearer ' . $api_key,
 					'Content-Type'  => 'application/json',
 				),
-				'body'    => wp_json_encode(
-					array(
-						'model'    => $model,
-						'messages' => array(
-							array(
-								'role'    => 'system',
-								'content' => $system_prompt,
-							),
-							array(
-								'role'    => 'user',
-								'content' => $user_message,
-							),
-						),
-					)
-				),
+				'body'    => wp_json_encode( $request_body ),
 				'timeout' => 120,
 			)
 		);
@@ -158,12 +192,22 @@ class AI_Review_REST_API {
 			);
 		}
 
-		$content = $body['choices'][0]['message']['content'];
+		$result = json_decode( $body['choices'][0]['message']['content'], true );
+
+		if ( ! is_array( $result ) || ! isset( $result['title'], $result['body'], $result['changes'] ) ) {
+			return new WP_Error(
+				'llm_api_error',
+				__( 'The AI service returned an unexpected response format.', 'ai-review' ),
+				array( 'status' => 502 )
+			);
+		}
 
 		return rest_ensure_response(
 			array(
 				'success' => true,
-				'content' => $content,
+				'title'   => $result['title'],
+				'content' => $result['body'],
+				'changes' => $result['changes'],
 			)
 		);
 	}

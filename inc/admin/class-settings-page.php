@@ -11,7 +11,7 @@ class AI_Review_Settings {
 
 	const OPTION_GROUP   = 'ai_review_settings';
 	const SETTINGS_PAGE  = 'ai-review-settings';
-	const DEFAULT_SYSTEM_PROMPT = 'You are an excellent editor. Please correct typos and unnatural expressions. Return only the article body. Do not modify or remove any WordPress block markup, HTML tags, or shortcodes.';
+	const DEFAULT_SYSTEM_PROMPT = 'You are an excellent editor. Please correct typos and unnatural expressions. Do not modify or remove any WordPress block markup, HTML tags, or shortcodes.';
 
 	/**
 	 * Initialize hooks.
