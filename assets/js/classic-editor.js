@@ -79,11 +79,22 @@
 				}
 			},
 			error: function( xhr ) {
-				var msg = aiReviewClassic.i18n.error;
-				if ( xhr.responseJSON && xhr.responseJSON.message ) {
-					msg = xhr.responseJSON.message;
+				var parts = [];
+				var json = xhr.responseJSON;
+				parts.push( ( json && json.message ) || aiReviewClassic.i18n.error );
+				if ( json && json.code ) {
+					parts.push( '[' + json.code + ']' );
 				}
-				$error.find( 'p' ).text( msg );
+				if ( json && json.data && json.data.detail ) {
+					parts.push( json.data.detail );
+				}
+				if ( json && json.data && json.data.url ) {
+					parts.push( 'URL: ' + json.data.url );
+				}
+				if ( json && json.data && json.data.model ) {
+					parts.push( 'Model: ' + json.data.model );
+				}
+				$error.find( 'p' ).css( { 'white-space': 'pre-wrap', 'word-break': 'break-all', 'font-size': '12px' } ).text( parts.join( '\n' ) );
 				$error.show();
 			},
 			complete: function() {

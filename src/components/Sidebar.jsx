@@ -12,7 +12,7 @@ import ChangesNotice from './ChangesNotice';
 const Sidebar = () => {
 	const [ prompt, setPrompt ] = useState( '' );
 	const [ isLoading, setIsLoading ] = useState( false );
-	const [ error, setError ] = useState( '' );
+	const [ error, setError ] = useState( null );
 	const [ isConfigured, setIsConfigured ] = useState( null );
 	const [ changes, setChanges ] = useState( '' );
 
@@ -41,7 +41,7 @@ const Sidebar = () => {
 
 	const handleExecute = async () => {
 		setIsLoading( true );
-		setError( '' );
+		setError( null );
 		setChanges( '' );
 
 		try {
@@ -69,10 +69,21 @@ const Sidebar = () => {
 				setPrompt( '' );
 			}
 		} catch ( err ) {
-			setError(
-				err.message ||
-					__( 'An error occurred.', 'ai-review' )
-			);
+			const parts = [];
+			parts.push( err.message || __( 'An error occurred.', 'ai-review' ) );
+			if ( err.code ) {
+				parts.push( '[' + err.code + ']' );
+			}
+			if ( err.data?.detail ) {
+				parts.push( err.data.detail );
+			}
+			if ( err.data?.url ) {
+				parts.push( 'URL: ' + err.data.url );
+			}
+			if ( err.data?.model ) {
+				parts.push( 'Model: ' + err.data.model );
+			}
+			setError( parts.join( '\n' ) );
 		} finally {
 			setIsLoading( false );
 		}
@@ -115,9 +126,11 @@ const Sidebar = () => {
 				<Notice
 					status="error"
 					isDismissible={ true }
-					onDismiss={ () => setError( '' ) }
+					onDismiss={ () => setError( null ) }
 				>
-					{ error }
+					<pre style={ { whiteSpace: 'pre-wrap', wordBreak: 'break-all', margin: 0, fontSize: '12px' } }>
+						{ error }
+					</pre>
 				</Notice>
 			) }
 

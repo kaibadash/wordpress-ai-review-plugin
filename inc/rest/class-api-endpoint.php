@@ -166,29 +166,49 @@ class AI_Review_REST_API {
 
 		if ( is_wp_error( $response ) ) {
 			return new WP_Error(
-				'llm_api_error',
-				__( 'Failed to communicate with the AI service. Please try again later.', 'ai-review' ),
-				array( 'status' => 502 )
+				'llm_connection_error',
+				__( 'Failed to communicate with the AI service.', 'ai-review' ),
+				array(
+					'status' => 502,
+					'detail' => $response->get_error_message(),
+					'url'    => $api_url,
+				)
 			);
 		}
 
-		$status_code = wp_remote_retrieve_response_code( $response );
+		$status_code   = wp_remote_retrieve_response_code( $response );
+		$response_body = wp_remote_retrieve_body( $response );
+
 		if ( $status_code !== 200 ) {
+			$error_detail = $response_body;
+			$decoded      = json_decode( $response_body, true );
+			if ( isset( $decoded['error']['message'] ) ) {
+				$error_detail = $decoded['error']['message'];
+			}
+
 			return new WP_Error(
 				'llm_api_error',
 				/* translators: %d: HTTP status code */
-				sprintf( __( 'The AI service returned an error (status: %d). Please check your settings.', 'ai-review' ), $status_code ),
-				array( 'status' => 502 )
+				sprintf( __( 'The AI service returned an error (status: %d).', 'ai-review' ), $status_code ),
+				array(
+					'status' => 502,
+					'detail' => $error_detail,
+					'url'    => $api_url,
+					'model'  => $model,
+				)
 			);
 		}
 
-		$body = json_decode( wp_remote_retrieve_body( $response ), true );
+		$body = json_decode( $response_body, true );
 
 		if ( empty( $body['choices'][0]['message']['content'] ) ) {
 			return new WP_Error(
-				'llm_api_error',
+				'llm_empty_response',
 				__( 'No valid response was received from the AI service.', 'ai-review' ),
-				array( 'status' => 502 )
+				array(
+					'status' => 502,
+					'detail' => wp_json_encode( $body ),
+				)
 			);
 		}
 
@@ -196,9 +216,12 @@ class AI_Review_REST_API {
 
 		if ( ! is_array( $result ) || ! isset( $result['title'], $result['body'], $result['changes'] ) ) {
 			return new WP_Error(
-				'llm_api_error',
+				'llm_invalid_format',
 				__( 'The AI service returned an unexpected response format.', 'ai-review' ),
-				array( 'status' => 502 )
+				array(
+					'status' => 502,
+					'detail' => $body['choices'][0]['message']['content'],
+				)
 			);
 		}
 
