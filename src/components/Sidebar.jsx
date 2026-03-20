@@ -10,6 +10,63 @@ import ExecuteButton from './ExecuteButton';
 import ChangesNotice from './ChangesNotice';
 
 /**
+ * Parse an SSE stream from the LLM proxy and return the accumulated JSON result.
+ *
+ * @param {Response} response Fetch Response with SSE body.
+ * @return {Promise<Object>} Parsed JSON object with title, body, changes.
+ */
+async function parseSSEStream( response ) {
+	const reader = response.body.getReader();
+	const decoder = new TextDecoder();
+	let buffer = '';
+	let fullContent = '';
+
+	while ( true ) {
+		const { done, value } = await reader.read();
+		if ( done ) {
+			break;
+		}
+
+		buffer += decoder.decode( value, { stream: true } );
+		const lines = buffer.split( '\n' );
+		buffer = lines.pop();
+
+		for ( const line of lines ) {
+			if ( ! line.startsWith( 'data: ' ) ) {
+				continue;
+			}
+			const data = line.slice( 6 );
+			if ( data === '[DONE]' ) {
+				continue;
+			}
+
+			const parsed = JSON.parse( data );
+
+			// LLM API error forwarded by PHP.
+			if ( parsed.error ) {
+				throw parsed;
+			}
+
+			const delta = parsed.choices?.[ 0 ]?.delta?.content;
+			if ( delta ) {
+				fullContent += delta;
+			}
+		}
+	}
+
+	if ( ! fullContent ) {
+		throw { code: 'llm_empty_response', message: 'No content received from the AI service.' };
+	}
+
+	const result = JSON.parse( fullContent );
+	if ( ! result.title || ! result.body || ! result.changes ) {
+		throw { code: 'llm_invalid_format', message: 'Unexpected response format.', data: { detail: fullContent } };
+	}
+
+	return result;
+}
+
+/**
  * Build a detailed error string from various error shapes.
  *
  * @param {*} err - Error from apiFetch (object with code/message/data), Response, string, or Error.
@@ -91,29 +148,40 @@ const Sidebar = () => {
 		setChanges( '' );
 
 		try {
-			const response = await apiFetch( {
-				path: 'ai-review/v1/review',
-				method: 'POST',
-				data: {
-					post_title: postTitle,
-					post_content: postContent,
-					prompt,
-				},
-			} );
+			const response = await fetch(
+				aiReviewData.rest_url + 'review-stream',
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-WP-Nonce': aiReviewData.nonce,
+					},
+					body: JSON.stringify( {
+						post_title: postTitle,
+						post_content: postContent,
+						prompt,
+					} ),
+				}
+			);
 
-			if ( response.success ) {
-				if ( response.title ) {
-					editPost( { title: response.title } );
-				}
-				if ( response.content ) {
-					const blocks = parse( response.content );
-					resetBlocks( blocks );
-				}
-				if ( response.changes ) {
-					setChanges( response.changes );
-				}
-				setPrompt( '' );
+			if ( ! response.ok ) {
+				const errBody = await response.json().catch( () => null );
+				throw errBody || new Error( 'HTTP ' + response.status );
 			}
+
+			const result = await parseSSEStream( response );
+
+			if ( result.title ) {
+				editPost( { title: result.title } );
+			}
+			if ( result.body ) {
+				const blocks = parse( result.body );
+				resetBlocks( blocks );
+			}
+			if ( result.changes ) {
+				setChanges( result.changes );
+			}
+			setPrompt( '' );
 		} catch ( err ) {
 			setError( formatError( err ) );
 		} finally {

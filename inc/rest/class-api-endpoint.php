@@ -22,6 +22,25 @@ class AI_Review_REST_API {
 	 * Register routes.
 	 */
 	public function register_routes() {
+		$review_args = array(
+			'post_title'   => array(
+				'type'              => 'string',
+				'required'          => true,
+				'sanitize_callback' => 'sanitize_text_field',
+			),
+			'post_content' => array(
+				'type'              => 'string',
+				'required'          => true,
+				'sanitize_callback' => 'wp_kses_post',
+			),
+			'prompt'       => array(
+				'type'              => 'string',
+				'required'          => false,
+				'default'           => '',
+				'sanitize_callback' => 'sanitize_textarea_field',
+			),
+		);
+
 		register_rest_route(
 			self::NAMESPACE,
 			'/review',
@@ -29,24 +48,18 @@ class AI_Review_REST_API {
 				'methods'             => 'POST',
 				'callback'            => array( $this, 'handle_review_request' ),
 				'permission_callback' => array( $this, 'check_edit_permission' ),
-				'args'                => array(
-					'post_title'   => array(
-						'type'              => 'string',
-						'required'          => true,
-						'sanitize_callback' => 'sanitize_text_field',
-					),
-					'post_content' => array(
-						'type'              => 'string',
-						'required'          => true,
-						'sanitize_callback' => 'wp_kses_post',
-					),
-					'prompt'       => array(
-						'type'              => 'string',
-						'required'          => false,
-						'default'           => '',
-						'sanitize_callback' => 'sanitize_textarea_field',
-					),
-				),
+				'args'                => $review_args,
+			)
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/review-stream',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'handle_review_stream_request' ),
+				'permission_callback' => array( $this, 'check_edit_permission' ),
+				'args'                => $review_args,
 			)
 		);
 
@@ -69,9 +82,12 @@ class AI_Review_REST_API {
 	}
 
 	/**
-	 * Handle AI review request.
+	 * Prepare common parameters for review requests.
+	 *
+	 * @param WP_REST_Request $request The request object.
+	 * @return array|WP_Error Array with api_url, api_key, model, and request_body on success.
 	 */
-	public function handle_review_request( WP_REST_Request $request ) {
+	protected function prepare_review_params( WP_REST_Request $request ) {
 		if ( ! AI_Review_Settings::is_configured() ) {
 			return new WP_Error(
 				'settings_not_configured',
@@ -108,13 +124,6 @@ class AI_Review_REST_API {
 				$post_title,
 				$post_content
 			);
-		}
-
-		$api_url = rtrim( $provider, '/' ) . '/chat/completions';
-
-		// Extend PHP execution time limit for LLM API calls.
-		if ( function_exists( 'set_time_limit' ) ) {
-			set_time_limit( 300 );
 		}
 
 		$request_body = array(
@@ -157,14 +166,38 @@ class AI_Review_REST_API {
 			),
 		);
 
+		return array(
+			'api_url'      => rtrim( $provider, '/' ) . '/chat/completions',
+			'api_key'      => $api_key,
+			'model'        => $model,
+			'request_body' => $request_body,
+		);
+	}
+
+	/**
+	 * Handle AI review request (non-streaming).
+	 */
+	public function handle_review_request( WP_REST_Request $request ) {
+		$params = $this->prepare_review_params( $request );
+		if ( is_wp_error( $params ) ) {
+			return $params;
+		}
+
+		$api_url = $params['api_url'];
+		$model   = $params['model'];
+
+		if ( function_exists( 'set_time_limit' ) ) {
+			set_time_limit( 300 );
+		}
+
 		$response = wp_remote_post(
 			$api_url,
 			array(
 				'headers' => array(
-					'Authorization' => 'Bearer ' . $api_key,
+					'Authorization' => 'Bearer ' . $params['api_key'],
 					'Content-Type'  => 'application/json',
 				),
-				'body'    => wp_json_encode( $request_body ),
+				'body'    => wp_json_encode( $params['request_body'] ),
 				'timeout' => 120,
 			)
 		);
@@ -238,6 +271,101 @@ class AI_Review_REST_API {
 				'changes' => $result['changes'],
 			)
 		);
+	}
+
+	/**
+	 * Handle AI review request (SSE streaming).
+	 *
+	 * Streams LLM API SSE chunks directly to the browser to avoid
+	 * Cloudflare and other reverse proxy timeouts.
+	 */
+	public function handle_review_stream_request( WP_REST_Request $request ) {
+		$params = $this->prepare_review_params( $request );
+		if ( is_wp_error( $params ) ) {
+			return $params;
+		}
+
+		if ( function_exists( 'set_time_limit' ) ) {
+			set_time_limit( 300 );
+		}
+
+		$params['request_body']['stream'] = true;
+
+		// Send SSE headers before streaming.
+		header( 'Content-Type: text/event-stream' );
+		header( 'Cache-Control: no-cache' );
+		header( 'X-Accel-Buffering: no' );
+
+		// Disable all output buffering.
+		while ( ob_get_level() ) {
+			ob_end_flush();
+		}
+
+		$api_url = $params['api_url'];
+		$model   = $params['model'];
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.curl_curl_init
+		$ch = curl_init( $api_url );
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.curl_curl_setopt_array
+		curl_setopt_array(
+			$ch,
+			array(
+				CURLOPT_POST           => true,
+				CURLOPT_HTTPHEADER     => array(
+					'Authorization: Bearer ' . $params['api_key'],
+					'Content-Type: application/json',
+				),
+				CURLOPT_POSTFIELDS     => wp_json_encode( $params['request_body'] ),
+				CURLOPT_RETURNTRANSFER => false,
+				CURLOPT_TIMEOUT        => 300,
+				CURLOPT_WRITEFUNCTION  => function ( $ch, $data ) {
+					echo $data;
+					flush();
+					return strlen( $data );
+				},
+			)
+		);
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.curl_curl_exec
+		$success = curl_exec( $ch );
+
+		if ( ! $success ) {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.curl_curl_error
+			$error_msg = curl_error( $ch );
+			echo "data: " . wp_json_encode(
+				array(
+					'error'   => true,
+					'message' => __( 'Failed to communicate with the AI service.', 'ai-review' ),
+					'detail'  => $error_msg,
+					'url'     => $api_url,
+					'model'   => $model,
+				)
+			) . "\n\n";
+			flush();
+		}
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.curl_curl_getinfo
+		$http_code = curl_getinfo( $ch, CURLINFO_HTTP_CODE );
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.curl_curl_close
+		curl_close( $ch );
+
+		if ( $success && $http_code !== 200 ) {
+			echo "data: " . wp_json_encode(
+				array(
+					'error'   => true,
+					'message' => sprintf(
+						/* translators: %d: HTTP status code */
+						__( 'The AI service returned an error (status: %d).', 'ai-review' ),
+						$http_code
+					),
+					'url'     => $api_url,
+					'model'   => $model,
+				)
+			) . "\n\n";
+			flush();
+		}
+
+		exit;
 	}
 
 	/**
