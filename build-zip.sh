@@ -31,3 +31,19 @@ zip -r "$ZIPNAME" \
   readme.txt
 
 echo "Created: $ZIPNAME"
+
+echo ""
+read -p "Upload to GitHub Releases as v${VERSION}? [y/N] " yn
+case "$yn" in
+  [yY]*)
+    git add -A
+    git commit -m "Bump version to ${VERSION}"
+    git tag "v${VERSION}"
+    git push origin HEAD --tags
+    gh release create "v${VERSION}" "$ZIPNAME" --title "v${VERSION}" --generate-notes
+    echo "Released: v${VERSION}"
+    ;;
+  *)
+    echo "Skipped release upload."
+    ;;
+esac
