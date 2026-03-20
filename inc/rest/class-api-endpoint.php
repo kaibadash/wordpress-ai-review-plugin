@@ -186,10 +186,6 @@ class AI_Review_REST_API {
 		$api_url = $params['api_url'];
 		$model   = $params['model'];
 
-		if ( function_exists( 'set_time_limit' ) ) {
-			set_time_limit( 300 );
-		}
-
 		$response = wp_remote_post(
 			$api_url,
 			array(
@@ -285,10 +281,6 @@ class AI_Review_REST_API {
 			return $params;
 		}
 
-		if ( function_exists( 'set_time_limit' ) ) {
-			set_time_limit( 300 );
-		}
-
 		$params['request_body']['stream'] = true;
 
 		// Send SSE headers before streaming.
@@ -319,6 +311,7 @@ class AI_Review_REST_API {
 				CURLOPT_RETURNTRANSFER => false,
 				CURLOPT_TIMEOUT        => 300,
 				CURLOPT_WRITEFUNCTION  => function ( $ch, $data ) {
+					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Raw SSE stream passthrough from API.
 					echo $data;
 					flush();
 					return strlen( $data );
