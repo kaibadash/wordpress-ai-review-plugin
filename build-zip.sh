@@ -16,6 +16,10 @@ sed -i '' "s/^ \* Version: .*/ * Version: ${VERSION}/" ai-review.php
 sed -i '' "s/^define( 'AI_REVIEW_VERSION', '.*' );/define( 'AI_REVIEW_VERSION', '${VERSION}' );/" ai-review.php
 sed -i '' "s/^Stable tag: .*/Stable tag: ${VERSION}/" readme.txt
 
+for po in languages/*.po; do
+  [ -f "$po" ] && msgfmt -o "${po%.po}.mo" "$po"
+done
+
 npm run build
 
 zip -r "$ZIPNAME" \
