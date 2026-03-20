@@ -46,3 +46,14 @@ wp-config.php
 # Note: If you wish to whitelist themes,
 # uncomment the next line
 #/wp-content/themes
+
+# Build output
+build/
+
+# Node.js
+node_modules/
+
+# Environment
+.env*
+.DS_Store
+*.zip
