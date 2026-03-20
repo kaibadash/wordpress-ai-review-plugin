@@ -4,7 +4,7 @@ Tags: ai, review, editor, gutenberg, llm
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 8.0
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -29,8 +29,13 @@ AI Review adds a sidebar panel to the WordPress post editor that lets you refine
 
 == Changelog ==
 
+= 1.0.1 =
+* Support Classic Editor
+* Support async request to avoid timeout
+
 = 1.0.0 =
 * Initial release
 * AI-powered post revision
 * LLM settings management
 * Structured output with title, body, and changes
+

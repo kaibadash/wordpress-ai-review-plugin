@@ -3,7 +3,7 @@
  * Plugin Name: AI Review
  * Plugin URI: https://github.com/kaibadash/wordpress-ai-review-plugin
  * Description: A plugin that uses AI to revise your posts. Enter a prompt in the post editor sidebar to refine your content.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: kaibadash
  * License: GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 define( 'AI_REVIEW_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'AI_REVIEW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'AI_REVIEW_VERSION', '1.0.0' );
+define( 'AI_REVIEW_VERSION', '1.0.1' );
 
 require_once AI_REVIEW_PLUGIN_DIR . 'inc/admin/class-settings-page.php';
 require_once AI_REVIEW_PLUGIN_DIR . 'inc/admin/class-classic-editor-meta-box.php';

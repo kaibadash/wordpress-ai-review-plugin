@@ -1,7 +1,7 @@
 {
   "name": "ai-review-plugin",
   "version": "1.0.0",
-  "description": "AIを使って記事を修正するWordPressプラグイン",
+  "description": "ai-review-plugin",
   "scripts": {
     "build": "wp-scripts build",
     "start": "wp-scripts start"
