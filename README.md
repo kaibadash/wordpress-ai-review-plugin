@@ -1,5 +1,9 @@
 # AI Review Plugin
 
+<img width="542" height="532" alt="setting" src="https://github.com/user-attachments/assets/a3f15510-45fb-4559-a81e-06ab2b1f97fa" />
+<img width="797" height="344" alt="review" src="https://github.com/user-attachments/assets/2f39d13b-784b-4164-bdc4-abb361487d01" />
+
+
 A WordPress plugin that uses AI to revise your posts. Enter a prompt in the sidebar of the post editor and let AI refine your content.
 
 ## Requirements
