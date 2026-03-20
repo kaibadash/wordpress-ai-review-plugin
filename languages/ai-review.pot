@@ -56,6 +56,42 @@ msgstr ""
 msgid "Enter the system prompt to send to the AI"
 msgstr ""
 
+#: inc/admin/class-settings-page.php
+msgid "Connection Test"
+msgstr ""
+
+#: inc/admin/class-settings-page.php
+msgid "Send a \"What is your name?\" request to verify your API settings."
+msgstr ""
+
+#: inc/admin/class-settings-page.php
+msgid "Test Connection"
+msgstr ""
+
+#: inc/admin/class-settings-page.php
+msgid "Success:"
+msgstr ""
+
+#: inc/admin/class-settings-page.php
+msgid "Error:"
+msgstr ""
+
+#: inc/admin/class-settings-page.php
+msgid "You are an excellent editor. Please correct typos and unnatural expressions. Do not modify or remove any WordPress block markup, HTML tags, or shortcodes."
+msgstr ""
+
+#: inc/rest/class-api-endpoint.php
+msgid "What is your name?"
+msgstr ""
+
+#: inc/rest/class-api-endpoint.php
+msgid "LLM settings are not configured."
+msgstr ""
+
+#: inc/rest/class-api-endpoint.php
+msgid "API returned status %d"
+msgstr ""
+
 #: inc/rest/class-api-endpoint.php
 msgid "LLM settings are not configured. Please configure them in the settings page."
 msgstr ""

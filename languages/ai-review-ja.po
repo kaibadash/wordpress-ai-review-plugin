@@ -59,6 +59,42 @@ msgstr "LLMプロバイダのAPIキーを入力してください"
 msgid "Enter the system prompt to send to the AI"
 msgstr "AIに送信するシステムプロンプトを入力してください"
 
+#: inc/admin/class-settings-page.php
+msgid "Connection Test"
+msgstr "接続テスト"
+
+#: inc/admin/class-settings-page.php
+msgid "Send a \"What is your name?\" request to verify your API settings."
+msgstr "\"あなたの名前は？\" リクエストを送信してAPI設定を確認します。"
+
+#: inc/admin/class-settings-page.php
+msgid "Test Connection"
+msgstr "接続テスト"
+
+#: inc/admin/class-settings-page.php
+msgid "Success:"
+msgstr "成功:"
+
+#: inc/admin/class-settings-page.php
+msgid "Error:"
+msgstr "エラー:"
+
+#: inc/admin/class-settings-page.php
+msgid "You are an excellent editor. Please correct typos and unnatural expressions. Do not modify or remove any WordPress block markup, HTML tags, or shortcodes."
+msgstr "あなたは優秀な編集者です。誤字脱字や不自然な表現を修正してください。WordPressのブロックマークアップ、HTMLタグ、ショートコードは変更・削除しないでください。"
+
+#: inc/rest/class-api-endpoint.php
+msgid "What is your name?"
+msgstr "あなたの名前は？"
+
+#: inc/rest/class-api-endpoint.php
+msgid "LLM settings are not configured."
+msgstr "LLMの設定が完了していません。"
+
+#: inc/rest/class-api-endpoint.php
+msgid "API returned status %d"
+msgstr "APIがステータス %d を返しました"
+
 #: inc/rest/class-api-endpoint.php
 msgid "LLM settings are not configured. Please configure them in the settings page."
 msgstr "LLMの設定が完了していません。設定画面から設定を行ってください。"

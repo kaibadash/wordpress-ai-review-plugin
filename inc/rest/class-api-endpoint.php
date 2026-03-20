@@ -72,6 +72,18 @@ class AI_Review_REST_API {
 				'permission_callback' => array( $this, 'check_edit_permission' ),
 			)
 		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/test',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'handle_test_request' ),
+				'permission_callback' => function () {
+					return current_user_can( 'manage_options' );
+				},
+			)
+		);
 	}
 
 	/**
@@ -79,6 +91,61 @@ class AI_Review_REST_API {
 	 */
 	public function check_edit_permission() {
 		return current_user_can( 'edit_posts' );
+	}
+
+	/**
+	 * Make a blocking POST request using cURL.
+	 *
+	 * wp_remote_post can return incomplete bodies when the server
+	 * streams JSON slowly over HTTP/2 (e.g. OpenRouter with reasoning models).
+	 * Using cURL directly ensures we wait for the full response.
+	 *
+	 * @param string $url     The request URL.
+	 * @param array  $headers HTTP headers as key => value pairs.
+	 * @param string $body    JSON-encoded request body.
+	 * @param int    $timeout Timeout in seconds.
+	 * @return array { response_body: string, status_code: int } | WP_Error
+	 */
+	protected function curl_post( $url, $headers, $body, $timeout = 120 ) {
+		$header_lines = array();
+		foreach ( $headers as $key => $value ) {
+			$header_lines[] = $key . ': ' . $value;
+		}
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.curl_curl_init
+		$ch = curl_init( $url );
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.curl_curl_setopt_array
+		curl_setopt_array(
+			$ch,
+			array(
+				CURLOPT_POST           => true,
+				CURLOPT_HTTPHEADER     => $header_lines,
+				CURLOPT_POSTFIELDS     => $body,
+				CURLOPT_RETURNTRANSFER => true,
+				CURLOPT_TIMEOUT        => $timeout,
+			)
+		);
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.curl_curl_exec
+		$response_body = curl_exec( $ch );
+
+		if ( false === $response_body ) {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.curl_curl_error
+			$error = curl_error( $ch );
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.curl_curl_close
+			curl_close( $ch );
+			return new WP_Error( 'curl_error', $error );
+		}
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.curl_curl_getinfo
+		$status_code = curl_getinfo( $ch, CURLINFO_HTTP_CODE );
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.curl_curl_close
+		curl_close( $ch );
+
+		return array(
+			'response_body' => $response_body,
+			'status_code'   => $status_code,
+		);
 	}
 
 	/**
@@ -103,10 +170,10 @@ class AI_Review_REST_API {
 		$provider      = get_option( 'ai_review_provider', '' );
 		$model         = get_option( 'ai_review_model', '' );
 		$api_key       = get_option( 'ai_review_api_key', '' );
-		$system_prompt = get_option( 'ai_review_system_prompt', AI_Review_Settings::DEFAULT_SYSTEM_PROMPT );
+		$system_prompt = get_option( 'ai_review_system_prompt', AI_Review_Settings::get_default_system_prompt() );
 
 		if ( empty( $system_prompt ) ) {
-			$system_prompt = AI_Review_Settings::DEFAULT_SYSTEM_PROMPT;
+			$system_prompt = AI_Review_Settings::get_default_system_prompt();
 		}
 
 		if ( ! empty( $prompt ) ) {
@@ -186,16 +253,13 @@ class AI_Review_REST_API {
 		$api_url = $params['api_url'];
 		$model   = $params['model'];
 
-		$response = wp_remote_post(
+		$response = $this->curl_post(
 			$api_url,
 			array(
-				'headers' => array(
-					'Authorization' => 'Bearer ' . $params['api_key'],
-					'Content-Type'  => 'application/json',
-				),
-				'body'    => wp_json_encode( $params['request_body'] ),
-				'timeout' => 120,
-			)
+				'Authorization' => 'Bearer ' . $params['api_key'],
+				'Content-Type'  => 'application/json',
+			),
+			wp_json_encode( $params['request_body'] )
 		);
 
 		if ( is_wp_error( $response ) ) {
@@ -210,8 +274,8 @@ class AI_Review_REST_API {
 			);
 		}
 
-		$status_code   = wp_remote_retrieve_response_code( $response );
-		$response_body = wp_remote_retrieve_body( $response );
+		$status_code   = $response['status_code'];
+		$response_body = $response['response_body'];
 
 		if ( $status_code !== 200 ) {
 			$error_detail = $response_body;
@@ -359,6 +423,98 @@ class AI_Review_REST_API {
 		}
 
 		exit;
+	}
+
+	/**
+	 * Handle test connection request.
+	 */
+	public function handle_test_request( WP_REST_Request $request ) {
+		if ( ! AI_Review_Settings::is_configured() ) {
+			return new WP_Error(
+				'settings_not_configured',
+				__( 'LLM settings are not configured.', 'ai-review' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		$provider = get_option( 'ai_review_provider', '' );
+		$model    = get_option( 'ai_review_model', '' );
+		$api_key  = get_option( 'ai_review_api_key', '' );
+		$api_url  = rtrim( $provider, '/' ) . '/chat/completions';
+
+		$response = $this->curl_post(
+			$api_url,
+			array(
+				'Authorization' => 'Bearer ' . $api_key,
+				'Content-Type'  => 'application/json',
+			),
+			wp_json_encode(
+				array(
+					'model'    => $model,
+					'messages' => array(
+						array(
+							'role'    => 'user',
+							'content' => __( 'What is your name?', 'ai-review' ),
+						),
+					),
+				)
+			),
+			60
+		);
+
+		if ( is_wp_error( $response ) ) {
+			return new WP_Error(
+				'llm_connection_error',
+				$response->get_error_message(),
+				array( 'status' => 502 )
+			);
+		}
+
+		$status_code   = $response['status_code'];
+		$response_body = $response['response_body'];
+
+		if ( $status_code !== 200 ) {
+			return new WP_Error(
+				'llm_api_error',
+				/* translators: %d: HTTP status code */
+				sprintf( __( 'API returned status %d', 'ai-review' ), $status_code ),
+				array(
+					'status'        => 502,
+					'response_body' => $response_body,
+				)
+			);
+		}
+
+		$body    = json_decode( $response_body, true );
+		$message = isset( $body['choices'][0]['message'] ) ? $body['choices'][0]['message'] : array();
+		$reply   = isset( $message['content'] ) ? $message['content'] : '';
+
+		$reasoning = isset( $message['reasoning'] ) ? $message['reasoning'] : '';
+
+		if ( empty( $reply ) && ! empty( $reasoning ) ) {
+			$reply = mb_substr( $reasoning, 0, 200 ) . '...';
+		}
+
+		if ( empty( $reply ) ) {
+			return new WP_Error(
+				'llm_empty_response',
+				__( 'The API returned an empty response.', 'ai-review' ),
+				array(
+					'status'        => 502,
+					'response_body' => $response_body,
+				)
+			);
+		}
+
+		$result = array(
+			'success' => true,
+			'reply'   => $reply,
+		);
+		if ( ! empty( $reasoning ) ) {
+			$result['reasoning'] = $reasoning;
+		}
+
+		return rest_ensure_response( $result );
 	}
 
 	/**
