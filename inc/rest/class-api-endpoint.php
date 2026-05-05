@@ -267,9 +267,10 @@ class AI_Review_REST_API {
 				'llm_connection_error',
 				__( 'Failed to communicate with the AI service.', 'ai-review' ),
 				array(
-					'status' => 502,
-					'detail' => $response->get_error_message(),
-					'url'    => $api_url,
+					'status'        => 502,
+					'curl_error'    => $response->get_error_message(),
+					'url'           => $api_url,
+					'model'         => $model,
 				)
 			);
 		}
@@ -278,21 +279,16 @@ class AI_Review_REST_API {
 		$response_body = $response['response_body'];
 
 		if ( $status_code !== 200 ) {
-			$error_detail = $response_body;
-			$decoded      = json_decode( $response_body, true );
-			if ( isset( $decoded['error']['message'] ) ) {
-				$error_detail = $decoded['error']['message'];
-			}
-
 			return new WP_Error(
 				'llm_api_error',
 				/* translators: %d: HTTP status code */
 				sprintf( __( 'The AI service returned an error (status: %d).', 'ai-review' ), $status_code ),
 				array(
-					'status' => 502,
-					'detail' => $error_detail,
-					'url'    => $api_url,
-					'model'  => $model,
+					'status'        => 502,
+					'http_status'   => $status_code,
+					'response_body' => $response_body,
+					'url'           => $api_url,
+					'model'         => $model,
 				)
 			);
 		}
@@ -304,21 +300,27 @@ class AI_Review_REST_API {
 				'llm_empty_response',
 				__( 'No valid response was received from the AI service.', 'ai-review' ),
 				array(
-					'status' => 502,
-					'detail' => wp_json_encode( $body ),
+					'status'        => 502,
+					'response_body' => $response_body,
+					'url'           => $api_url,
+					'model'         => $model,
 				)
 			);
 		}
 
-		$result = json_decode( $body['choices'][0]['message']['content'], true );
+		$content = $body['choices'][0]['message']['content'];
+		$result  = json_decode( $content, true );
 
 		if ( ! is_array( $result ) || ! isset( $result['title'], $result['body'], $result['changes'] ) ) {
 			return new WP_Error(
 				'llm_invalid_format',
 				__( 'The AI service returned an unexpected response format.', 'ai-review' ),
 				array(
-					'status' => 502,
-					'detail' => $body['choices'][0]['message']['content'],
+					'status'         => 502,
+					'message_content' => $content,
+					'response_body'  => $response_body,
+					'url'            => $api_url,
+					'model'          => $model,
 				)
 			);
 		}
@@ -360,6 +362,10 @@ class AI_Review_REST_API {
 		$api_url = $params['api_url'];
 		$model   = $params['model'];
 
+		// Buffered body (only filled when the upstream returns non-200, so we can dump it in the SSE error event).
+		$response_status = 0;
+		$error_buffer    = '';
+
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.curl_curl_init
 		$ch = curl_init( $api_url );
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.curl_curl_setopt_array
@@ -374,7 +380,18 @@ class AI_Review_REST_API {
 				CURLOPT_POSTFIELDS     => wp_json_encode( $params['request_body'] ),
 				CURLOPT_RETURNTRANSFER => false,
 				CURLOPT_TIMEOUT        => 300,
-				CURLOPT_WRITEFUNCTION  => function ( $ch, $data ) {
+				CURLOPT_HEADERFUNCTION => function ( $ch, $header ) use ( &$response_status ) {
+					if ( preg_match( '#^HTTP/[\d.]+\s+(\d+)#i', $header, $m ) ) {
+						$response_status = (int) $m[1];
+					}
+					return strlen( $header );
+				},
+				CURLOPT_WRITEFUNCTION  => function ( $ch, $data ) use ( &$response_status, &$error_buffer ) {
+					if ( 0 !== $response_status && 200 !== $response_status ) {
+						// Don't leak the upstream error body into the SSE stream — buffer it and emit one clean error event after.
+						$error_buffer .= $data;
+						return strlen( $data );
+					}
 					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Raw SSE stream passthrough from API.
 					echo $data;
 					flush();
@@ -391,11 +408,11 @@ class AI_Review_REST_API {
 			$error_msg = curl_error( $ch );
 			echo "data: " . wp_json_encode(
 				array(
-					'error'   => true,
-					'message' => __( 'Failed to communicate with the AI service.', 'ai-review' ),
-					'detail'  => $error_msg,
-					'url'     => $api_url,
-					'model'   => $model,
+					'error'      => true,
+					'message'    => __( 'Failed to communicate with the AI service.', 'ai-review' ),
+					'curl_error' => $error_msg,
+					'url'        => $api_url,
+					'model'      => $model,
 				)
 			) . "\n\n";
 			flush();
@@ -409,14 +426,16 @@ class AI_Review_REST_API {
 		if ( $success && $http_code !== 200 ) {
 			echo "data: " . wp_json_encode(
 				array(
-					'error'   => true,
-					'message' => sprintf(
+					'error'         => true,
+					'message'       => sprintf(
 						/* translators: %d: HTTP status code */
 						__( 'The AI service returned an error (status: %d).', 'ai-review' ),
 						$http_code
 					),
-					'url'     => $api_url,
-					'model'   => $model,
+					'http_status'   => $http_code,
+					'response_body' => $error_buffer,
+					'url'           => $api_url,
+					'model'         => $model,
 				)
 			) . "\n\n";
 			flush();

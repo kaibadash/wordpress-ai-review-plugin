@@ -45,34 +45,27 @@
 		} );
 	}
 
-	function showError( parts ) {
+	function showError( text ) {
 		$error.find( 'p' ).css( {
 			'white-space': 'pre-wrap',
 			'word-break': 'break-all',
 			'font-size': '12px',
-		} ).text( parts.join( '\n' ) );
+		} ).text( text );
 		$error.show();
 	}
 
-	function formatErrorFromJSON( json ) {
-		var parts = [];
-		parts.push( json.message || 'Unknown error' );
-		if ( json.code ) {
-			parts.push( '[' + json.code + ']' );
+	function dumpError( err ) {
+		if ( err instanceof Error ) {
+			return err.message + ( err.stack ? '\n' + err.stack : '' );
 		}
-		if ( json.detail ) {
-			parts.push( json.detail );
+		if ( typeof err === 'string' ) {
+			return err;
 		}
-		if ( json.data && json.data.detail ) {
-			parts.push( json.data.detail );
+		try {
+			return JSON.stringify( err, null, 2 );
+		} catch ( e ) {
+			return String( err );
 		}
-		if ( json.url || ( json.data && json.data.url ) ) {
-			parts.push( 'URL: ' + ( json.url || json.data.url ) );
-		}
-		if ( json.model || ( json.data && json.data.model ) ) {
-			parts.push( 'Model: ' + ( json.model || json.data.model ) );
-		}
-		return parts;
 	}
 
 	function resetUI() {
@@ -100,18 +93,18 @@
 		} )
 			.then( function( response ) {
 				if ( ! response.ok ) {
-					return response.json().catch( function() {
-						return null;
-					} ).then( function( json ) {
-						if ( json ) {
-							showError( formatErrorFromJSON( json ) );
-						} else {
-							showError( [
-								aiReviewClassic.i18n.error,
-								'HTTP ' + response.status + ' ' + response.statusText,
-							] );
+					return response.text().then( function( text ) {
+						var parsed = null;
+						try {
+							parsed = JSON.parse( text );
+						} catch ( e ) {
+							// Not JSON — fall through.
 						}
-						throw null; // Signal error handled.
+						throw parsed || {
+							http_status: response.status,
+							http_status_text: response.statusText,
+							response_body: text,
+						};
 					} );
 				}
 				return readSSEStream( response );
@@ -133,14 +126,7 @@
 				$prompt.val( '' );
 			} )
 			.catch( function( err ) {
-				if ( err === null ) {
-					return; // Already handled.
-				}
-				if ( err && err.message ) {
-					showError( formatErrorFromJSON( err ) );
-				} else {
-					showError( [ aiReviewClassic.i18n.error, String( err ) ] );
-				}
+				showError( dumpError( err ) );
 			} )
 			.finally( resetUI );
 	}
@@ -171,7 +157,12 @@
 						continue;
 					}
 
-					var parsed = JSON.parse( data );
+					var parsed;
+					try {
+						parsed = JSON.parse( data );
+					} catch ( e ) {
+						throw { code: 'llm_invalid_chunk', message: e.message, chunk: data };
+					}
 
 					if ( parsed.error ) {
 						throw parsed;
@@ -192,7 +183,11 @@
 			if ( ! fullContent ) {
 				throw { message: 'No content received from the AI service.', code: 'llm_empty_response' };
 			}
-			return JSON.parse( fullContent );
+			try {
+				return JSON.parse( fullContent );
+			} catch ( e ) {
+				throw { code: 'llm_invalid_json', message: e.message, full_content: fullContent };
+			}
 		} );
 	}
 

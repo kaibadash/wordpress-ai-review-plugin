@@ -40,7 +40,12 @@ async function parseSSEStream( response ) {
 				continue;
 			}
 
-			const parsed = JSON.parse( data );
+			let parsed;
+			try {
+				parsed = JSON.parse( data );
+			} catch ( e ) {
+				throw { code: 'llm_invalid_chunk', message: e.message, chunk: data };
+			}
 
 			// LLM API error forwarded by PHP.
 			if ( parsed.error ) {
@@ -58,53 +63,30 @@ async function parseSSEStream( response ) {
 		throw { code: 'llm_empty_response', message: 'No content received from the AI service.' };
 	}
 
-	const result = JSON.parse( fullContent );
+	let result;
+	try {
+		result = JSON.parse( fullContent );
+	} catch ( e ) {
+		throw { code: 'llm_invalid_json', message: e.message, full_content: fullContent };
+	}
 	if ( ! result.title || ! result.body || ! result.changes ) {
-		throw { code: 'llm_invalid_format', message: 'Unexpected response format.', data: { detail: fullContent } };
+		throw { code: 'llm_invalid_format', message: 'Unexpected response format.', full_content: fullContent };
 	}
 
 	return result;
 }
 
 /**
- * Build a detailed error string from various error shapes.
- *
- * @param {*} err - Error from apiFetch (object with code/message/data), Response, string, or Error.
- * @return {string}
+ * Stringify any error shape so the user can at least see it.
+ * No cherry-picking — dump everything we have.
  */
 function formatError( err ) {
-	// apiFetch parsed JSON error (WP_Error response)
-	if ( err && typeof err === 'object' && ( err.code || err.data ) ) {
-		const parts = [ err.message || 'Unknown error' ];
-		if ( err.code ) {
-			parts.push( '[' + err.code + ']' );
-		}
-		if ( err.data?.detail ) {
-			parts.push( err.data.detail );
-		}
-		if ( err.data?.url ) {
-			parts.push( 'URL: ' + err.data.url );
-		}
-		if ( err.data?.model ) {
-			parts.push( 'Model: ' + err.data.model );
-		}
-		if ( err.data?.status ) {
-			parts.push( 'HTTP ' + err.data.status );
-		}
-		return parts.join( '\n' );
-	}
-
-	// Standard Error object (network failure, timeout, non-JSON response, etc.)
 	if ( err instanceof Error ) {
 		return err.message + ( err.stack ? '\n' + err.stack : '' );
 	}
-
-	// String or other primitive
 	if ( typeof err === 'string' ) {
 		return err;
 	}
-
-	// Fallback: dump as JSON
 	try {
 		return JSON.stringify( err, null, 2 );
 	} catch {
@@ -165,8 +147,18 @@ const Sidebar = () => {
 			);
 
 			if ( ! response.ok ) {
-				const errBody = await response.json().catch( () => null );
-				throw errBody || new Error( 'HTTP ' + response.status );
+				const text = await response.text().catch( () => '' );
+				let parsed = null;
+				try {
+					parsed = JSON.parse( text );
+				} catch {
+					// Not JSON — fall through.
+				}
+				throw parsed || {
+					http_status: response.status,
+					http_status_text: response.statusText,
+					response_body: text,
+				};
 			}
 
 			const result = await parseSSEStream( response );
