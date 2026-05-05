@@ -40,6 +40,23 @@ function ai_review_init() {
 add_action( 'plugins_loaded', 'ai_review_init' );
 
 /**
+ * Add a "Settings" link to the plugin row on the Plugins screen.
+ *
+ * @param array $links Existing action links.
+ * @return array
+ */
+function ai_review_plugin_action_links( $links ) {
+	$settings_link = sprintf(
+		'<a href="%s">%s</a>',
+		esc_url( admin_url( 'options-general.php?page=ai-review-settings' ) ),
+		esc_html__( 'Settings', 'ai-review' )
+	);
+	array_unshift( $links, $settings_link );
+	return $links;
+}
+add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'ai_review_plugin_action_links' );
+
+/**
  * Load text domain for bundled translations.
  *
  * Uses load_textdomain() directly instead of load_plugin_textdomain()
