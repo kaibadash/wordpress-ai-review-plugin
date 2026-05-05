@@ -106,7 +106,7 @@ class AI_Review_REST_API {
 	 * @param int    $timeout Timeout in seconds.
 	 * @return array { response_body: string, status_code: int } | WP_Error
 	 */
-	protected function curl_post( $url, $headers, $body, $timeout = 120 ) {
+	protected function curl_post( $url, $headers, $body, $timeout = 300 ) {
 		$header_lines = array();
 		foreach ( $headers as $key => $value ) {
 			$header_lines[] = $key . ': ' . $value;
@@ -118,11 +118,15 @@ class AI_Review_REST_API {
 		curl_setopt_array(
 			$ch,
 			array(
-				CURLOPT_POST           => true,
-				CURLOPT_HTTPHEADER     => $header_lines,
-				CURLOPT_POSTFIELDS     => $body,
-				CURLOPT_RETURNTRANSFER => true,
-				CURLOPT_TIMEOUT        => $timeout,
+				CURLOPT_POST            => true,
+				CURLOPT_HTTPHEADER      => $header_lines,
+				CURLOPT_POSTFIELDS      => $body,
+				CURLOPT_RETURNTRANSFER  => true,
+				CURLOPT_CONNECTTIMEOUT  => 30,
+				CURLOPT_TIMEOUT         => $timeout,
+				// Bail if the upstream stalls completely, even within $timeout.
+				CURLOPT_LOW_SPEED_LIMIT => 1,
+				CURLOPT_LOW_SPEED_TIME  => 120,
 			)
 		);
 
@@ -250,6 +254,9 @@ class AI_Review_REST_API {
 			return $params;
 		}
 
+		// phpcs:ignore Generic.PHP.NoSilencedErrors -- safe-mode hosts may disallow this.
+		@set_time_limit( 0 );
+
 		$api_url = $params['api_url'];
 		$model   = $params['model'];
 
@@ -259,7 +266,8 @@ class AI_Review_REST_API {
 				'Authorization' => 'Bearer ' . $params['api_key'],
 				'Content-Type'  => 'application/json',
 			),
-			wp_json_encode( $params['request_body'] )
+			wp_json_encode( $params['request_body'] ),
+			600
 		);
 
 		if ( is_wp_error( $response ) ) {
@@ -349,6 +357,11 @@ class AI_Review_REST_API {
 
 		$params['request_body']['stream'] = true;
 
+		// Reasoning models can take many minutes before they emit the first token.
+		// Lift PHP's max_execution_time so the script doesn't get killed mid-stream.
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors,Generic.PHP.NoSilencedErrors -- safe-mode hosts may disallow this; the @ keeps the request alive.
+		@set_time_limit( 0 );
+
 		// Send SSE headers before streaming.
 		header( 'Content-Type: text/event-stream' );
 		header( 'Cache-Control: no-cache' );
@@ -379,7 +392,13 @@ class AI_Review_REST_API {
 				),
 				CURLOPT_POSTFIELDS     => wp_json_encode( $params['request_body'] ),
 				CURLOPT_RETURNTRANSFER => false,
-				CURLOPT_TIMEOUT        => 300,
+				// No overall timeout — reasoning models legitimately run for many minutes.
+				// We rely on CONNECTTIMEOUT for the initial handshake and LOW_SPEED_* for stall detection.
+				CURLOPT_TIMEOUT        => 0,
+				CURLOPT_CONNECTTIMEOUT => 30,
+				// If we receive less than 1 byte/sec for 120 seconds, treat the upstream as dead.
+				CURLOPT_LOW_SPEED_LIMIT => 1,
+				CURLOPT_LOW_SPEED_TIME  => 120,
 				CURLOPT_HEADERFUNCTION => function ( $ch, $header ) use ( &$response_status ) {
 					if ( preg_match( '#^HTTP/[\d.]+\s+(\d+)#i', $header, $m ) ) {
 						$response_status = (int) $m[1];
@@ -456,6 +475,10 @@ class AI_Review_REST_API {
 			);
 		}
 
+		// Reasoning models can take a couple of minutes even for "What is your name?".
+		// phpcs:ignore Generic.PHP.NoSilencedErrors -- safe-mode hosts may disallow this.
+		@set_time_limit( 0 );
+
 		$provider = get_option( 'ai_review_provider', '' );
 		$model    = get_option( 'ai_review_model', '' );
 		$api_key  = get_option( 'ai_review_api_key', '' );
@@ -478,7 +501,7 @@ class AI_Review_REST_API {
 					),
 				)
 			),
-			60
+			300
 		);
 
 		if ( is_wp_error( $response ) ) {
