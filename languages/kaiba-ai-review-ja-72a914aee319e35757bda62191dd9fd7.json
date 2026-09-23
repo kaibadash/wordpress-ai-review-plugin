@@ -10,10 +10,10 @@
         "lang": "ja",
         "plural-forms": "nplurals=1; plural=0;"
       },
-      "AI Review": [ "AI Review" ],
+      "Kaiba AI Review": [ "Kaiba AI Review" ],
       "An error occurred.": [ "エラーが発生しました。" ],
       "Loading...": [ "読み込み中..." ],
-      "Please complete the LLM settings. Go to Settings → AI Review.": [ "設定画面からLLMの設定を完了してください。管理画面の「設定」→「AI Review」から設定できます。" ],
+      "Please complete the LLM settings. Go to Settings → Kaiba AI Review.": [ "設定画面からLLMの設定を完了してください。管理画面の「設定」→「Kaiba AI Review」から設定できます。" ],
       "Processing...": [ "処理中..." ],
       "Execute": [ "実行" ],
       "AI revisions will overwrite the current post content.": [ "⚠ AIによる修正は現在の記事内容を上書きします。" ],

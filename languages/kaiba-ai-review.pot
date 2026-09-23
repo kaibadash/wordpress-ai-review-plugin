@@ -2,7 +2,7 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: AI Review 1.0.0\n"
+"Project-Id-Version: Kaiba AI Review 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-01-01 00:00+0000\n"
 "MIME-Version: 1.0\n"
@@ -33,7 +33,7 @@ msgid "System Prompt"
 msgstr ""
 
 #: inc/admin/class-settings-page.php
-msgid "AI Review Settings"
+msgid "Kaiba AI Review Settings"
 msgstr ""
 
 #: inc/admin/class-settings-page.php
@@ -125,7 +125,7 @@ msgid "Loading..."
 msgstr ""
 
 #: src/components/Sidebar.jsx
-msgid "Please complete the LLM settings. Go to Settings → AI Review."
+msgid "Please complete the LLM settings. Go to Settings → Kaiba AI Review."
 msgstr ""
 
 #: src/components/ExecuteButton.jsx
@@ -153,5 +153,5 @@ msgid "e.g. Make the tone more casual"
 msgstr ""
 
 #: src/index.js
-msgid "AI Review"
+msgid "Kaiba AI Review"
 msgstr ""

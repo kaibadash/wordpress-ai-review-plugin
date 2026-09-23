@@ -162,7 +162,7 @@ class AI_Review_REST_API {
 		if ( ! AI_Review_Settings::is_configured() ) {
 			return new WP_Error(
 				'settings_not_configured',
-				__( 'LLM settings are not configured. Please configure them in the settings page.', 'ai-review' ),
+				__( 'LLM settings are not configured. Please configure them in the settings page.', 'kaiba-ai-review' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -183,7 +183,7 @@ class AI_Review_REST_API {
 		if ( ! empty( $prompt ) ) {
 			/* translators: %1$s: post title, %2$s: post content, %3$s: user prompt */
 			$user_message = sprintf(
-				__( "Please revise the following article.\n\n[Title]\n%1\$s\n\n[Article]\n%2\$s\n\n[Instructions]\n%3\$s", 'ai-review' ),
+				__( "Please revise the following article.\n\n[Title]\n%1\$s\n\n[Article]\n%2\$s\n\n[Instructions]\n%3\$s", 'kaiba-ai-review' ),
 				$post_title,
 				$post_content,
 				$prompt
@@ -191,7 +191,7 @@ class AI_Review_REST_API {
 		} else {
 			/* translators: %1$s: post title, %2$s: post content */
 			$user_message = sprintf(
-				__( "Please revise the following article.\n\n[Title]\n%1\$s\n\n[Article]\n%2\$s", 'ai-review' ),
+				__( "Please revise the following article.\n\n[Title]\n%1\$s\n\n[Article]\n%2\$s", 'kaiba-ai-review' ),
 				$post_title,
 				$post_content
 			);
@@ -273,7 +273,7 @@ class AI_Review_REST_API {
 		if ( is_wp_error( $response ) ) {
 			return new WP_Error(
 				'llm_connection_error',
-				__( 'Failed to communicate with the AI service.', 'ai-review' ),
+				__( 'Failed to communicate with the AI service.', 'kaiba-ai-review' ),
 				array(
 					'status'        => 502,
 					'curl_error'    => $response->get_error_message(),
@@ -290,7 +290,7 @@ class AI_Review_REST_API {
 			return new WP_Error(
 				'llm_api_error',
 				/* translators: %d: HTTP status code */
-				sprintf( __( 'The AI service returned an error (status: %d).', 'ai-review' ), $status_code ),
+				sprintf( __( 'The AI service returned an error (status: %d).', 'kaiba-ai-review' ), $status_code ),
 				array(
 					'status'        => 502,
 					'http_status'   => $status_code,
@@ -306,7 +306,7 @@ class AI_Review_REST_API {
 		if ( empty( $body['choices'][0]['message']['content'] ) ) {
 			return new WP_Error(
 				'llm_empty_response',
-				__( 'No valid response was received from the AI service.', 'ai-review' ),
+				__( 'No valid response was received from the AI service.', 'kaiba-ai-review' ),
 				array(
 					'status'        => 502,
 					'response_body' => $response_body,
@@ -322,7 +322,7 @@ class AI_Review_REST_API {
 		if ( ! is_array( $result ) || ! isset( $result['title'], $result['body'], $result['changes'] ) ) {
 			return new WP_Error(
 				'llm_invalid_format',
-				__( 'The AI service returned an unexpected response format.', 'ai-review' ),
+				__( 'The AI service returned an unexpected response format.', 'kaiba-ai-review' ),
 				array(
 					'status'         => 502,
 					'message_content' => $content,
@@ -428,7 +428,7 @@ class AI_Review_REST_API {
 			echo "data: " . wp_json_encode(
 				array(
 					'error'      => true,
-					'message'    => __( 'Failed to communicate with the AI service.', 'ai-review' ),
+					'message'    => __( 'Failed to communicate with the AI service.', 'kaiba-ai-review' ),
 					'curl_error' => $error_msg,
 					'url'        => $api_url,
 					'model'      => $model,
@@ -448,7 +448,7 @@ class AI_Review_REST_API {
 					'error'         => true,
 					'message'       => sprintf(
 						/* translators: %d: HTTP status code */
-						__( 'The AI service returned an error (status: %d).', 'ai-review' ),
+						__( 'The AI service returned an error (status: %d).', 'kaiba-ai-review' ),
 						$http_code
 					),
 					'http_status'   => $http_code,
@@ -470,7 +470,7 @@ class AI_Review_REST_API {
 		if ( ! AI_Review_Settings::is_configured() ) {
 			return new WP_Error(
 				'settings_not_configured',
-				__( 'LLM settings are not configured.', 'ai-review' ),
+				__( 'LLM settings are not configured.', 'kaiba-ai-review' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -496,7 +496,7 @@ class AI_Review_REST_API {
 					'messages' => array(
 						array(
 							'role'    => 'user',
-							'content' => __( 'What is your name?', 'ai-review' ),
+							'content' => __( 'What is your name?', 'kaiba-ai-review' ),
 						),
 					),
 				)
@@ -519,7 +519,7 @@ class AI_Review_REST_API {
 			return new WP_Error(
 				'llm_api_error',
 				/* translators: %d: HTTP status code */
-				sprintf( __( 'API returned status %d', 'ai-review' ), $status_code ),
+				sprintf( __( 'API returned status %d', 'kaiba-ai-review' ), $status_code ),
 				array(
 					'status'        => 502,
 					'response_body' => $response_body,
@@ -540,7 +540,7 @@ class AI_Review_REST_API {
 		if ( empty( $reply ) ) {
 			return new WP_Error(
 				'llm_empty_response',
-				__( 'The API returned an empty response.', 'ai-review' ),
+				__( 'The API returned an empty response.', 'kaiba-ai-review' ),
 				array(
 					'status'        => 502,
 					'response_body' => $response_body,

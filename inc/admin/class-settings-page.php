@@ -1,6 +1,6 @@
 <?php
 /**
- * AI Review Settings Page.
+ * Kaiba AI Review Settings Page.
  */
 
 if (! defined('ABSPATH')) {
@@ -16,7 +16,7 @@ class AI_Review_Settings
      */
     public static function get_default_system_prompt()
     {
-        return __('You are an excellent editor. Please correct typos and unnatural expressions. Do not modify or remove any WordPress block markup, HTML tags, or shortcodes.', 'ai-review');
+        return __('You are an excellent editor. Please correct typos and unnatural expressions. Do not modify or remove any WordPress block markup, HTML tags, or shortcodes.', 'kaiba-ai-review');
     }
 
     /**
@@ -80,14 +80,14 @@ class AI_Review_Settings
 
         add_settings_section(
             'ai_review_main_section',
-            __('LLM Settings', 'ai-review'),
+            __('LLM Settings', 'kaiba-ai-review'),
             null,
             self::SETTINGS_PAGE
         );
 
         add_settings_field(
             'ai_review_provider',
-            __('LLM Provider (API Base URL)', 'ai-review'),
+            __('LLM Provider (API Base URL)', 'kaiba-ai-review'),
             array( $this, 'render_provider_field' ),
             self::SETTINGS_PAGE,
             'ai_review_main_section'
@@ -95,7 +95,7 @@ class AI_Review_Settings
 
         add_settings_field(
             'ai_review_model',
-            __('Model Name', 'ai-review'),
+            __('Model Name', 'kaiba-ai-review'),
             array( $this, 'render_model_field' ),
             self::SETTINGS_PAGE,
             'ai_review_main_section'
@@ -103,7 +103,7 @@ class AI_Review_Settings
 
         add_settings_field(
             'ai_review_api_key',
-            __('API Key', 'ai-review'),
+            __('API Key', 'kaiba-ai-review'),
             array( $this, 'render_api_key_field' ),
             self::SETTINGS_PAGE,
             'ai_review_main_section'
@@ -111,7 +111,7 @@ class AI_Review_Settings
 
         add_settings_field(
             'ai_review_system_prompt',
-            __('System Prompt', 'ai-review'),
+            __('System Prompt', 'kaiba-ai-review'),
             array( $this, 'render_system_prompt_field' ),
             self::SETTINGS_PAGE,
             'ai_review_main_section'
@@ -124,8 +124,8 @@ class AI_Review_Settings
     public function add_settings_page()
     {
         add_options_page(
-            __('AI Review Settings', 'ai-review'),
-            'AI Review',
+            __('Kaiba AI Review Settings', 'kaiba-ai-review'),
+            'Kaiba AI Review',
             'manage_options',
             self::SETTINGS_PAGE,
             array( $this, 'render_settings_page' )
@@ -142,19 +142,19 @@ class AI_Review_Settings
         }
         ?>
 		<div class="wrap">
-			<h1><?php echo esc_html(__('AI Review Settings', 'ai-review')); ?></h1>
+			<h1><?php echo esc_html(__('Kaiba AI Review Settings', 'kaiba-ai-review')); ?></h1>
 			<form method="post" action="options.php">
 				<?php
                 settings_fields(self::OPTION_GROUP);
         do_settings_sections(self::SETTINGS_PAGE);
-        submit_button(__('Save Changes', 'ai-review'));
+        submit_button(__('Save Changes', 'kaiba-ai-review'));
         ?>
 			</form>
 			<hr />
-			<h2><?php echo esc_html(__('Connection Test', 'ai-review')); ?></h2>
-			<p class="description"><?php echo esc_html(__('Send a "What is your name?" request to verify your API settings.', 'ai-review')); ?></p>
+			<h2><?php echo esc_html(__('Connection Test', 'kaiba-ai-review')); ?></h2>
+			<p class="description"><?php echo esc_html(__('Send a "What is your name?" request to verify your API settings.', 'kaiba-ai-review')); ?></p>
 			<p>
-				<button type="button" id="ai-review-test-btn" class="button button-secondary"><?php echo esc_html(__('Test Connection', 'ai-review')); ?></button>
+				<button type="button" id="ai-review-test-btn" class="button button-secondary"><?php echo esc_html(__('Test Connection', 'kaiba-ai-review')); ?></button>
 				<span id="ai-review-test-spinner" class="spinner" style="float: none;"></span>
 			</p>
 			<div id="ai-review-test-result"></div>
@@ -185,8 +185,8 @@ class AI_Review_Settings
             array(
                 'endpoint'     => rest_url('ai-review/v1/test'),
                 'nonce'        => wp_create_nonce('wp_rest'),
-                'successLabel' => __('Success:', 'ai-review'),
-                'errorLabel'   => __('Error:', 'ai-review'),
+                'successLabel' => __('Success:', 'kaiba-ai-review'),
+                'errorLabel'   => __('Error:', 'kaiba-ai-review'),
             )
         );
     }
@@ -199,7 +199,7 @@ class AI_Review_Settings
         $value = get_option('ai_review_provider', '');
         ?>
 		<input type="text" name="ai_review_provider" value="<?php echo esc_attr($value); ?>" class="regular-text" placeholder="https://api.openai.com/v1" required />
-		<p class="description"><?php echo esc_html(__('Enter the API Base URL of your LLM provider (e.g. https://api.openai.com/v1)', 'ai-review')); ?></p>
+		<p class="description"><?php echo esc_html(__('Enter the API Base URL of your LLM provider (e.g. https://api.openai.com/v1)', 'kaiba-ai-review')); ?></p>
 		<?php
     }
 
@@ -211,7 +211,7 @@ class AI_Review_Settings
         $value = get_option('ai_review_model', '');
         ?>
 		<input type="text" name="ai_review_model" value="<?php echo esc_attr($value); ?>" class="regular-text" placeholder="gpt-4o-mini" required />
-		<p class="description"><?php echo esc_html(__('Enter the model name to use (e.g. gpt-4o-mini)', 'ai-review')); ?></p>
+		<p class="description"><?php echo esc_html(__('Enter the model name to use (e.g. gpt-4o-mini)', 'kaiba-ai-review')); ?></p>
 		<?php
     }
 
@@ -223,7 +223,7 @@ class AI_Review_Settings
         $value = get_option('ai_review_api_key', '');
         ?>
 		<input type="password" name="ai_review_api_key" value="<?php echo esc_attr($value); ?>" class="regular-text" required />
-		<p class="description"><?php echo esc_html(__('Enter the API key for your LLM provider', 'ai-review')); ?></p>
+		<p class="description"><?php echo esc_html(__('Enter the API key for your LLM provider', 'kaiba-ai-review')); ?></p>
 		<?php
     }
 
@@ -235,7 +235,7 @@ class AI_Review_Settings
         $value = get_option('ai_review_system_prompt', self::get_default_system_prompt());
         ?>
 		<textarea name="ai_review_system_prompt" rows="5" class="large-text"><?php echo esc_textarea($value); ?></textarea>
-		<p class="description"><?php echo esc_html(__('Enter the system prompt to send to the AI', 'ai-review')); ?></p>
+		<p class="description"><?php echo esc_html(__('Enter the system prompt to send to the AI', 'kaiba-ai-review')); ?></p>
 		<?php
     }
 

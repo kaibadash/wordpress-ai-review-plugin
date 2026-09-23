@@ -12,10 +12,10 @@ const ExecuteButton = ( { onClick, disabled, isLoading } ) => {
 			{ isLoading ? (
 				<>
 					<Spinner />
-					{ __( 'Processing...', 'ai-review' ) }
+					{ __( 'Processing...', 'kaiba-ai-review' ) }
 				</>
 			) : (
-				__( 'Execute', 'ai-review' )
+				__( 'Execute', 'kaiba-ai-review' )
 			) }
 		</Button>
 	);

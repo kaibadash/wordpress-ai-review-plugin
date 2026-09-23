@@ -1,13 +1,13 @@
 <?php
 /**
- * Plugin Name: AI Review
+ * Plugin Name: Kaiba AI Review
  * Plugin URI: https://github.com/kaibadash/wordpress-ai-review-plugin
  * Description: A plugin that uses AI to revise your posts. Enter a prompt in the post editor sidebar to refine your content.
  * Version: 1.0.4
  * Author: kaibadash
  * License: GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: ai-review
+ * Text Domain: kaiba-ai-review
  * Requires at least: 6.0
  * Requires PHP: 8.0
  */
@@ -65,9 +65,9 @@ add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'ai_review_plu
  */
 function ai_review_load_textdomain() {
 	$locale = determine_locale();
-	$mofile = AI_REVIEW_PLUGIN_DIR . 'languages/ai-review-' . $locale . '.mo';
+	$mofile = AI_REVIEW_PLUGIN_DIR . 'languages/kaiba-ai-review-' . $locale . '.mo';
 	if ( file_exists( $mofile ) ) {
-		load_textdomain( 'ai-review', $mofile );
+		load_textdomain( 'kaiba-ai-review', $mofile );
 	}
 }
 add_action( 'init', 'ai_review_load_textdomain' );
@@ -85,12 +85,12 @@ add_action( 'init', 'ai_review_load_textdomain' );
  * @return string|false
  */
 function ai_review_load_script_translation_file( $file, $handle, $domain ) {
-	if ( 'ai-review' !== $domain || 'ai-review-editor' !== $handle ) {
+	if ( 'kaiba-ai-review' !== $domain || 'ai-review-editor' !== $handle ) {
 		return $file;
 	}
 
 	$locale = determine_locale();
-	$files  = glob( AI_REVIEW_PLUGIN_DIR . 'languages/ai-review-' . $locale . '-*.json' );
+	$files  = glob( AI_REVIEW_PLUGIN_DIR . 'languages/kaiba-ai-review-' . $locale . '-*.json' );
 	if ( ! empty( $files ) ) {
 		return $files[0];
 	}
@@ -131,7 +131,7 @@ function ai_review_enqueue_editor_assets() {
 		)
 	);
 
-	wp_set_script_translations( 'ai-review-editor', 'ai-review', AI_REVIEW_PLUGIN_DIR . 'languages' );
+	wp_set_script_translations( 'ai-review-editor', 'kaiba-ai-review', AI_REVIEW_PLUGIN_DIR . 'languages' );
 
 	if ( file_exists( AI_REVIEW_PLUGIN_DIR . 'build/index.css' ) ) {
 		wp_enqueue_style(

@@ -10,7 +10,7 @@ if [ -z "$VERSION" ]; then
   exit 1
 fi
 
-ZIPNAME="ai-review-${VERSION}.zip"
+ZIPNAME="kaiba-ai-review-${VERSION}.zip"
 
 sed -i '' "s/^ \* Version: .*/ * Version: ${VERSION}/" ai-review.php
 sed -i '' "s/^define( 'AI_REVIEW_VERSION', '.*' );/define( 'AI_REVIEW_VERSION', '${VERSION}' );/" ai-review.php
