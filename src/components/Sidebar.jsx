@@ -184,7 +184,7 @@ const Sidebar = () => {
 	if ( isConfigured === null ) {
 		return (
 			<PanelBody>
-				<p>{ __( 'Loading...', 'ai-review' ) }</p>
+				<p>{ __( 'Loading...', 'kaiba-ai-review' ) }</p>
 			</PanelBody>
 		);
 	}
@@ -194,8 +194,8 @@ const Sidebar = () => {
 			<PanelBody>
 				<Notice status="warning" isDismissible={ false }>
 					{ __(
-						'Please complete the LLM settings. Go to Settings → AI Review.',
-						'ai-review'
+						'Please complete the LLM settings. Go to Settings → Kaiba AI Review.',
+						'kaiba-ai-review'
 					) }
 				</Notice>
 			</PanelBody>

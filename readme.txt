@@ -1,4 +1,4 @@
-=== AI Review ===
+=== Kaiba AI Review ===
 Contributors: kaibadash
 Tags: ai, review, editor, gutenberg, llm
 Requires at least: 6.0
@@ -12,9 +12,9 @@ A plugin that uses AI to revise your posts.
 
 == Description ==
 
-AI Review adds a sidebar panel to the WordPress post editor that lets you refine your posts with AI.
+Kaiba AI Review adds a sidebar panel to the WordPress post editor that lets you refine your posts with AI.
 
-* Adds an AI Review panel to the post editor sidebar
+* Adds a Kaiba AI Review panel to the post editor sidebar
 * Enter optional instructions and click Execute to let AI revise your title and content
 * Supports any OpenAI-compatible Chat Completions API
 * Configure LLM provider, model, API key, and system prompt in the settings page
@@ -24,8 +24,8 @@ AI Review adds a sidebar panel to the WordPress post editor that lets you refine
 
 1. Upload the plugin to the `wp-content/plugins/` directory
 2. Activate the plugin on the Plugins page
-3. Go to Settings > AI Review and configure your LLM settings
-4. Open the AI Review panel in the post editor sidebar
+3. Go to Settings > Kaiba AI Review and configure your LLM settings
+4. Open the Kaiba AI Review panel in the post editor sidebar
 
 == Changelog ==
 

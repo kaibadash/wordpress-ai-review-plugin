@@ -1,9 +1,9 @@
-# Japanese translation for AI Review plugin.
+# Japanese translation for Kaiba AI Review plugin.
 # Copyright (C) 2024 kaibadash
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: AI Review 1.0.0\n"
+"Project-Id-Version: Kaiba AI Review 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-01-01 00:00+0000\n"
@@ -36,8 +36,8 @@ msgid "System Prompt"
 msgstr "システムプロンプト"
 
 #: inc/admin/class-settings-page.php
-msgid "AI Review Settings"
-msgstr "AI Review 設定"
+msgid "Kaiba AI Review Settings"
+msgstr "Kaiba AI Review 設定"
 
 #: inc/admin/class-settings-page.php
 msgid "Save Changes"
@@ -166,8 +166,8 @@ msgid "Loading..."
 msgstr "読み込み中..."
 
 #: src/components/Sidebar.jsx
-msgid "Please complete the LLM settings. Go to Settings → AI Review."
-msgstr "設定画面からLLMの設定を完了してください。管理画面の「設定」→「AI Review」から設定できます。"
+msgid "Please complete the LLM settings. Go to Settings → Kaiba AI Review."
+msgstr "設定画面からLLMの設定を完了してください。管理画面の「設定」→「Kaiba AI Review」から設定できます。"
 
 #: src/components/ExecuteButton.jsx
 msgid "Processing..."
@@ -198,5 +198,5 @@ msgid "e.g. Make the tone more casual"
 msgstr "例: もっとカジュアルな文体にして"
 
 #: src/index.js
-msgid "AI Review"
-msgstr "AI Review"
+msgid "Kaiba AI Review"
+msgstr "Kaiba AI Review"

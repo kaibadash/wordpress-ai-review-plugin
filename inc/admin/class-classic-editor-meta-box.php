@@ -43,7 +43,7 @@ class AI_Review_Classic_Editor {
 		foreach ( $post_types as $post_type ) {
 			add_meta_box(
 				'ai-review-meta-box',
-				__( 'AI Review', 'ai-review' ),
+				__( 'Kaiba AI Review', 'kaiba-ai-review' ),
 				array( $this, 'render_meta_box' ),
 				$post_type,
 				'side',
@@ -59,20 +59,20 @@ class AI_Review_Classic_Editor {
 		?>
 		<div id="ai-review-classic">
 			<div class="notice notice-warning inline" style="margin: 0 0 12px;">
-				<p><?php esc_html_e( 'AI revisions will overwrite the current post content.', 'ai-review' ); ?></p>
+				<p><?php esc_html_e( 'AI revisions will overwrite the current post content.', 'kaiba-ai-review' ); ?></p>
 			</div>
 
 			<div id="ai-review-not-configured" style="display:none;">
 				<div class="notice notice-warning inline" style="margin: 0;">
-					<p><?php esc_html_e( 'Please complete the LLM settings. Go to Settings → AI Review.', 'ai-review' ); ?></p>
+					<p><?php esc_html_e( 'Please complete the LLM settings. Go to Settings → Kaiba AI Review.', 'kaiba-ai-review' ); ?></p>
 				</div>
 			</div>
 
 			<div id="ai-review-form">
 				<p>
-					<label for="ai-review-prompt"><strong><?php esc_html_e( 'Instructions (optional)', 'ai-review' ); ?></strong></label>
-					<textarea id="ai-review-prompt" rows="4" class="widefat" placeholder="<?php esc_attr_e( 'e.g. Make the tone more casual', 'ai-review' ); ?>"></textarea>
-					<span class="description"><?php esc_html_e( 'Optionally enter instructions for the AI. If left empty, the system prompt will be used as-is.', 'ai-review' ); ?></span>
+					<label for="ai-review-prompt"><strong><?php esc_html_e( 'Instructions (optional)', 'kaiba-ai-review' ); ?></strong></label>
+					<textarea id="ai-review-prompt" rows="4" class="widefat" placeholder="<?php esc_attr_e( 'e.g. Make the tone more casual', 'kaiba-ai-review' ); ?>"></textarea>
+					<span class="description"><?php esc_html_e( 'Optionally enter instructions for the AI. If left empty, the system prompt will be used as-is.', 'kaiba-ai-review' ); ?></span>
 				</p>
 
 				<div id="ai-review-error" style="display:none;" class="notice notice-error inline">
@@ -81,13 +81,13 @@ class AI_Review_Classic_Editor {
 
 				<p>
 					<button type="button" id="ai-review-execute" class="button button-primary">
-						<?php esc_html_e( 'Execute', 'ai-review' ); ?>
+						<?php esc_html_e( 'Execute', 'kaiba-ai-review' ); ?>
 					</button>
 					<span id="ai-review-spinner" class="spinner" style="float:none;"></span>
 				</p>
 
 				<div id="ai-review-changes" style="display:none;" class="notice notice-success inline">
-					<p><strong><?php esc_html_e( 'Changes', 'ai-review' ); ?></strong></p>
+					<p><strong><?php esc_html_e( 'Changes', 'kaiba-ai-review' ); ?></strong></p>
 					<p id="ai-review-changes-text" style="white-space:pre-wrap;"></p>
 				</div>
 			</div>
@@ -124,9 +124,9 @@ class AI_Review_Classic_Editor {
 				'nonce'    => wp_create_nonce( 'wp_rest' ),
 				'rest_url' => rest_url( 'ai-review/v1/' ),
 				'i18n'     => array(
-					'execute'    => __( 'Execute', 'ai-review' ),
-					'processing' => __( 'Processing...', 'ai-review' ),
-					'error'      => __( 'An error occurred.', 'ai-review' ),
+					'execute'    => __( 'Execute', 'kaiba-ai-review' ),
+					'processing' => __( 'Processing...', 'kaiba-ai-review' ),
+					'error'      => __( 'An error occurred.', 'kaiba-ai-review' ),
 				),
 			)
 		);

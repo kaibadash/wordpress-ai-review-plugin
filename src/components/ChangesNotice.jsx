@@ -8,7 +8,7 @@ const ChangesNotice = ( { changes, onDismiss } ) => {
 			isDismissible={ true }
 			onDismiss={ onDismiss }
 		>
-			<strong>{ __( 'Changes', 'ai-review' ) }</strong>
+			<strong>{ __( 'Changes', 'kaiba-ai-review' ) }</strong>
 			<p style={ { margin: '4px 0 0', whiteSpace: 'pre-wrap' } }>
 				{ changes }
 			</p>
